@@ -2,57 +2,31 @@
   <div class="page-item" ref="item"></div>
 </template>
 <script>
-import * as mxgraph from "mxgraph";
+import * as mxgraph from "mxgraph"
+import { Graph } from '../mxgraph/graph'
 export default {
   props: {
     page: {
       type: Object
+    },
+    themes: {
     }
   },
   data() {
     return {
-      graph: null
     };
   },
   created() {},
   mounted() {
-    const {
-      mxGraph,
-      mxEvent,
-      mxCell,
-      mxGraphModel,
-      mxImage,
-      mxGraphView,
-      mxEventObject
-    } = mxgraph();
-    let root = new mxCell();
-    root.insert(new mxCell()); // 创建插入图层
-    this.graph = new mxGraph(this.$refs["item"], new mxGraphModel(root));
-    window.graph.push(this.graph);
-    console.log(this.graph);
-    // this.graph.background='red';
-    // this.graph.view.validateBackground();
-    // this.graph.fireEvent(new mxEventObject('backgroundColorChanged'))
-    // window.a = this.graph;
-    // const img = new mxImage(
-    //   "http://www.eltmall.com/source/image/3fe502898421ceed677695385d69b9269982ac9b.860.jpg",
-    //   "910",
-    //   "511"
-    // );
+    this.graph = new Graph(null, null, null, null, this.themes);
+    this.graph.transparentBackground = false;
+    
+    this.graph.init(this.$refs['item']);
+    
+    let root = this.graph.view.getDrawPane().ownerSVGElement;
+    root.style.position = 'absolute';
 
-    // this.graph.setBackgroundImage(img);
-    // 设置背景图片
-    // const img = new mxImage('http://www.eltmall.com/source/image/3fe502898421ceed677695385d69b9269982ac9b.860.jpg','910','511')
-    // this.graph.setBackgroundImage(img);
-    // window.mxv = new mxGraphView(this.graph);
-    // setTimeout(function(){
-    //   console.log('执行');
-    //   window.mxv.validateBackgroundImage();  // 设置背景图片后如何生效
-    // },16)
-    // 监听mxCell改变
-    // this.model.addListener(mxEvent.CHANGE, function(sender, evt) {
-    //   console.log('change',sender,evt)
-    // })
+    console.log(this.graph);
   },
   methods: {}
 };
@@ -60,9 +34,9 @@ export default {
 
 <style lang="scss" scoped>
 .page-item {
-  width: 910px;
-  height: 511.875px;
-  margin: 10px auto;
+  width: 100%;
+  height: 100%;
   background-color: #fff;
+  
 }
 </style>

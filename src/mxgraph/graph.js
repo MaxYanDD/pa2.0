@@ -8,24 +8,21 @@ const {
   mxShape,
   mxConstants,
   mxUtils,
-  mxEventSource,
   mxEventObject,
-  mxUndoManager,
   mxEvent,
   mxPoint,
   mxResources,
   mxRectangle,
   mxConnectionHandler,
   mxPopupMenu,
-  mxObjectCodec,
-  mxCodecRegistry ,
   mxText,
   mxCellHighlight,
   mxImage,
   mxCellRenderer,
   mxConnector,
   mxStencil,
-  mxStencilRegistry 
+	mxStencilRegistry,
+	mxLayoutManager
 } = mxgraph();
 
 /**
@@ -92,8 +89,7 @@ mxGraph.prototype.pageScale = 1;
 		if (navigator != null && navigator.language != null)
 		{
 			var lang = navigator.language.toLowerCase();
-			mxGraph.prototype.pageFormat = (lang === 'en-us' || lang === 'en-ca' || lang === 'es-mx') ?
-				mxConstants.PAGE_FORMAT_LETTER_PORTRAIT : mxConstants.PAGE_FORMAT_A4_PORTRAIT;
+			mxGraph.prototype.pageFormat = new mxRectangle(0,0,960,540);
 		}
 	}
 	catch (e)
@@ -138,7 +134,6 @@ mxShape.prototype.getConstraints = function(style, w, h)
  */
 export function Graph(container, model, renderHint, stylesheet, themes)
 {
-
 	mxGraph.call(this, container, model, renderHint, stylesheet);
 	
 	this.themes = themes || this.defaultThemes;

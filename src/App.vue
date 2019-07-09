@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <!-- <div class="header">
+    <div class="header">
       <ProjectTopBar />
       <ToolsBar />
     </div>
@@ -11,16 +11,16 @@
       <div class="content-right">
         <PageList :pages="pages" :activeId="activeId"/>
       </div>
-    </div> -->
+    </div>
   </div>
 </template>
 
 <script>
-import main from './mxgraph'
-// import ProjectTopBar from "./view/ProjectTopBar";
-// import ThumbList from "./view/ThumbList";
-// import ToolsBar from "./view/ToolsBar";
-// import PageList from "./view/PageList";
+// import main from './mxgraph'
+import ProjectTopBar from "./view/ProjectTopBar";
+import ThumbList from "./view/ThumbList";
+import ToolsBar from "./view/ToolsBar";
+import PageList from "./view/PageList";
 export default {
   name: "App",
   data() {
@@ -41,10 +41,10 @@ export default {
     };
   },
   components: {
-    // ProjectTopBar,
-    // ThumbList,
-    // ToolsBar,
-    // PageList
+    ProjectTopBar,
+    ThumbList,
+    ToolsBar,
+    PageList
   },
   created() {
     this.$bus.$on('changeActive', id => {
@@ -52,8 +52,7 @@ export default {
     })
   },
   mounted() {
-    console.log('main');
-    main();
+  
   }
 };
 </script>

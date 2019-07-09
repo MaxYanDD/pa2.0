@@ -9,7 +9,6 @@ const {
   mxResources,
   mxGraphView
 } = mxgraph();
-console.dir(mxGraphView);
 
 export default function main() {
   var editorUiInit = EditorUi.prototype.init;
