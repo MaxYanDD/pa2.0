@@ -1,14 +1,20 @@
 <template>
   <div class="page-list">
     <div class="shadow"></div>
-    <div v-for="page in pages" :key="page.id" v-show="page.id == activeId" :ref="page.id" class="page-item"/>
+    <div
+      v-for="page in pages"
+      :key="page.id"
+      v-show="page.id == activeId"
+      :ref="page.id"
+      class="page-item"
+    />
   </div>
 </template>
 
 <script>
 // import PageItem from '../components/PageItem'
 // import { createText } from '../mxgraph'
-import createGraph from "../mxgraph/createGraph";
+import Graph from "../mxgraph/Graph";
 import themesXML from "../utils/themesXML";
 export default {
   props: {
@@ -21,28 +27,31 @@ export default {
     }
   },
   data() {
-    return {
-    };
+    return {};
   },
   components: {},
   created() {
     this.themes = themesXML();
-    this.$bus.$on("addText", () => console.log("addTexx"));
+    this.$bus.$on("createText", this.createText);
   },
   methods: {
     createPage() {
-      this.pages.map(page => {
-        createGraph(this.$refs[page.id][0], this.themes, page.xml);
+      this.graphs = this.pages.map(page => {
+        return new Graph(this.$refs[page.id][0], null, null, null, this.themes);
       });
+    },
+    createText() {
+      console.log( this.graphs[this.activeId]);
+      this.graphs[this.activeId].createText();
     }
   },
   mounted() {
-    this.createPage()
+    this.createPage();
   }
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .page-list {
   position: relative;
   width: 100%;
@@ -54,13 +63,12 @@ export default {
   }
   .shadow {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    width: 962px;
-    height: 542px;
-    border: 1px solid #ccc;
-    box-shadow: 0 1px 3px 1px rgba(60,64,67,.15);
+    top: 0;
+    left: 0;
+    width: 960px;
+    height: 540px;
+    box-shadow: 0 1px 5px 1px rgba(60, 64, 67, 0.15);
+    transform-origin: 0 0;
   }
 }
 </style>

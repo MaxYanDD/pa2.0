@@ -1,102 +1,103 @@
 <template>
   <div class="toolsbar">
-    <el-tooltip class="tool-item" effect="dark" content="保存" placement="bottom-start">
+    <ToolTip  content="保存"  class="tool-item">
       <a>
         <i class="iconfont icon-baocun"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="打印" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="打印">
       <a>
         <i class="iconfont icon-dayin"></i>
       </a>
-    </el-tooltip>
+    </ToolTip>
     <div class="toolbar-separator"></div>
-    <el-tooltip class="tool-item" effect="dark" content="撤销" placement="bottom-start">
+    <ToolTip class="tool-item" content="撤销">
       <a>
         <i class="iconfont icon-undo"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="重做" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="重做">
       <a>
         <i class="iconfont icon-redo"></i>
       </a>
-    </el-tooltip>
+    </ToolTip>
     <div class="toolbar-separator"></div>
-    <el-tooltip class="tool-item" effect="dark" content="选择" placement="bottom-start">
+    <ToolTip class="tool-item" content="选择">
       <a>
         <i class="iconfont icon-shubiaozhizhen"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="文本框" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="文本框">
       <a @click="addText">
         <i class="iconfont icon-twenbenkuang"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="图片" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="图片">
       <a>
         <i class="iconfont icon-tupian"></i>
         <i class="iconfont icon-arrow-drop-down"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="形状" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="形状">
       <a>
         <i class="iconfont icon-shapes"></i>
         <i class="iconfont icon-arrow-drop-down"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="直线" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="直线">
       <a>
         <i class="iconfont icon-Line-Tool"></i>
         <i class="iconfont icon-arrow-drop-down"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="表格" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="表格">
       <a>
         <i class="iconfont icon-table"></i>
       </a>
-    </el-tooltip>
+    </ToolTip>
     <div class="toolbar-separator"></div>
-    <el-tooltip class="tool-item" effect="dark" content="填充颜色" placement="bottom-start">
+    <ToolTip class="tool-item" content="填充颜色">
       <a>
         <i class="iconfont icon-tianchong"></i>
         <div class="pickerbox">
           <el-color-picker v-model="fillColor"></el-color-picker>
         </div>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="边框颜色" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="边框颜色">
       <a>
         <i class="iconfont icon-pen"></i>
         <div class="pickerbox">
           <el-color-picker v-model="borderColor"></el-color-picker>
         </div>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="边框粗细" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="边框粗细">
       <a>
         <i class="iconfont icon-xiantiaocuxi1"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="边框线型" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="边框线型">
       <a>
         <i class="iconfont icon-ic_line_style"></i>
       </a>
-    </el-tooltip>
+    </ToolTip>
     <div class="toolbar-separator"></div>
-    <el-tooltip class="tool-item" effect="dark" content="字体" placement="bottom-start">
+    <ToolTip class="tool-item" content="字体">
       <a>
         <i class="iconfont icon-ic_line_style"></i>
       </a>
-    </el-tooltip>
-    <el-tooltip class="tool-item" effect="dark" content="字号" placement="bottom-start">
+    </ToolTip>
+    <ToolTip class="tool-item" content="字号">
       <a>
         <i class="iconfont icon-ic_line_style"></i>
       </a>
-    </el-tooltip>
+    </ToolTip>
   </div>
 </template>
 <script>
 import * as mxgraph from "mxgraph";
+import ToolTip from '../components/ToolTip'
 export default {
   data() {
     return {
@@ -108,8 +109,11 @@ export default {
   mounted() {},
   methods: {
     addText() {
-      this.$bus.$emit("addText");
+      this.$bus.$emit("createText");
     }
+  },
+  components: {
+    ToolTip
   }
 };
 </script>
