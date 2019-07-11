@@ -1,6 +1,6 @@
 <template>
   <div class="toolsbar">
-    <ToolTip  content="保存"  class="tool-item">
+    <ToolTip content="保存" class="tool-item">
       <a>
         <i class="iconfont icon-baocun"></i>
       </a>
@@ -84,32 +84,92 @@
     </ToolTip>
     <div class="toolbar-separator"></div>
     <ToolTip class="tool-item" content="字体">
-      <a>
-        <i class="iconfont icon-ic_line_style"></i>
-      </a>
+      <el-select
+        v-model="selectedFontFamily"
+        placeholder="请选择"
+        class="el-select-override el-ff tool-item"
+        popper-class="el-popper-override"
+      >
+        <el-option
+          v-for="item in fontFamilyList"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+          :style="{'font-family': item.value}"
+        ></el-option>
+      </el-select>
     </ToolTip>
+    <div class="toolbar-separator"></div>
     <ToolTip class="tool-item" content="字号">
-      <a>
-        <i class="iconfont icon-ic_line_style"></i>
-      </a>
+       <el-select
+        v-model="selectedFontSize"
+        placeholder="12"
+        class="el-select-override el-fz tool-item"
+        popper-class="el-popper-override"
+      >
+        <el-option
+          v-for="item in fontSizeList"
+          :key="item"
+          :label="item"
+          :value="item"
+        ></el-option>
+      </el-select>
     </ToolTip>
+    <div class="toolbar-separator"></div>
   </div>
 </template>
 <script>
 import * as mxgraph from "mxgraph";
-import ToolTip from '../components/ToolTip'
+import ToolTip from "../components/ToolTip";
 export default {
   data() {
     return {
       fillColor: "#409EFF",
-      borderColor: "#409EFF"
+      borderColor: "#409EFF",
+      fontFamilyList: [
+        {
+          value: "Microsoft YaHei",
+          label: "微软雅黑"
+        },
+        {
+          value: "SimSun",
+          label: "宋体"
+        },
+        {
+          value: "KaiTi",
+          label: "楷体"
+        },
+        {
+          value: "LiSu",
+          label: "隶书"
+        },
+        {
+          value: "YouYuan",
+          label: "幼圆"
+        },
+        {
+          value: "Impact",
+          label: "IMPACT"
+        },
+        {
+          value: "Arial",
+          label: "Arial"
+        },
+        {
+          value: "Verdana",
+          label: "Verdana"
+        }
+      ],
+      fontSizeList: [6,7,8,9,10,11,12,14,18,24,30,36,48,60,72,96],
+      selectedFontSize: '',
+      selectedFontFamily: ''
     };
   },
   created() {},
   mounted() {},
   methods: {
-    addText() {
-      this.$bus.$emit("createText");
+    addText(evt) {
+      this.$bus.$emit("createText", evt);
     }
   },
   components: {
@@ -140,6 +200,7 @@ export default {
       font-size: 20px;
       vertical-align: middle;
       color: #606f7b;
+      line-height: 32px;
     }
     &:hover {
       background-color: #eff8ff;
@@ -176,6 +237,35 @@ export default {
     border-left: 1px solid #dadce0;
     margin: 0 4px;
     height: 20px;
+  }
+  .el-fz {
+    width: 60px;
+  }
+  .el-ff {
+    width: 84px;
+  }
+  .el-select-override {
+    .el-input {
+      height: 100%;
+    }
+    .el-input__inner {
+      height: 100%;
+      border: none;
+      border-radius: 0px;
+      font-size: 12px;
+      padding-left: 0px;
+      padding-right: 0px;
+    }
+    &:hover {
+      .el-input__inner {
+        background-color: #eff8ff;
+      }
+    }
+  }
+}
+.el-popper-override {
+  .el-select-dropdown__wrap {
+    max-height: 1000px;
   }
 }
 </style>
