@@ -3,11 +3,13 @@
 import Vue from 'vue'
 import App from './App'
 import { Dropdown,DropdownMenu,DropdownItem,Tooltip,ColorPicker,Select,Option } from 'element-ui'
-import vcolorpicker from 'vcolorpicker'
 import './assets/css/reset.css'
 import 'font-awesome/css/font-awesome.min.css'
-// import router from './router'
-Vue.prototype.$bus = new Vue()
+import Editor from './mxgraph/editor'
+
+const bus = new Vue();
+Vue.prototype.$bus = bus
+Vue.prototype.$Editor = new Editor(bus)
 Vue.config.productionTip = false
 
 // element-ui
@@ -18,10 +20,7 @@ Vue.use(Tooltip);
 Vue.use(ColorPicker);
 Vue.use(Select);
 Vue.use(Option);
-// vcolorpicker
-Vue.use(vcolorpicker)
 
-/* eslint-disable no-new */
 new Vue({
   el: '#app',
   // router,

@@ -2,7 +2,6 @@
   <div class="page-item" ref="item"></div>
 </template>
 <script>
-import * as mxgraph from "mxgraph"
 import { Graph } from '../mxgraph/Graph'
 export default {
   props: {

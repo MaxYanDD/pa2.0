@@ -1,5 +1,12 @@
 import Vue from 'vue'
 
-export let stroe = Vue.observable({
-  
+const store = Vue.observable({
+  Toolbar:{
+    fillColor: "#409EFF",
+    borderColor: "#409EFF",
+    selectedFontSize: '',
+    selectedFontFamily: ''
+  }
 })
+
+export default store

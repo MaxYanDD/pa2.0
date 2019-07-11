@@ -101,18 +101,13 @@
     </ToolTip>
     <div class="toolbar-separator"></div>
     <ToolTip class="tool-item" content="字号">
-       <el-select
+      <el-select
         v-model="selectedFontSize"
         placeholder="12"
         class="el-select-override el-fz tool-item"
         popper-class="el-popper-override"
       >
-        <el-option
-          v-for="item in fontSizeList"
-          :key="item"
-          :label="item"
-          :value="item"
-        ></el-option>
+        <el-option v-for="item in fontSizeList" :key="item" :label="item" :value="item"></el-option>
       </el-select>
     </ToolTip>
     <div class="toolbar-separator"></div>
@@ -121,6 +116,7 @@
 <script>
 import * as mxgraph from "mxgraph";
 import ToolTip from "../components/ToolTip";
+import store from "../store";
 export default {
   data() {
     return {
@@ -160,16 +156,41 @@ export default {
           label: "Verdana"
         }
       ],
-      fontSizeList: [6,7,8,9,10,11,12,14,18,24,30,36,48,60,72,96],
-      selectedFontSize: '',
-      selectedFontFamily: ''
+      fontSizeList: [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        14,
+        18,
+        24,
+        30,
+        36,
+        48,
+        60,
+        72,
+        96
+      ],
+      selectedFontSize: "",
+      selectedFontFamily: ""
     };
   },
-  created() {},
+  created() {
+    this.$bus.$on("updateToolBarStates", this.updateToolBarStates);
+  },
   mounted() {},
   methods: {
     addText(evt) {
       this.$bus.$emit("createText", evt);
+    },
+    updateToolBarStates(state) {
+      if (state) {
+        const { shap, text } = state;
+      }
+      console.log(state);
     }
   },
   components: {

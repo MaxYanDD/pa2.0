@@ -7,15 +7,15 @@ const {
   mxUtils
 } = mxgraph();
 
-function Editor(graphs,id) {
-  this.graphs = graphs;
-  this.init(id)
+function Editor(bus) {
+  this.$bus = bus;
 }
 
 /**
  * 编辑器初始化
  */
-Editor.prototype.init = function(id) {
+Editor.prototype.init = function(graphs,id) {
+  this.graphs = graphs;
   this.activeGraph = this.graphs[id];
 
   this.graphs.map(graph => {
@@ -164,11 +164,10 @@ Editor.prototype.updateToolBarStates = function(){
 			}
 		}
   }
-  
+
   var state = graph.view.getState(graph.getSelectionCell());
 
-  console.log(state);
-
+  this.$bus.$emit('updateToolBarStates',state)
 }
 
 export default Editor

@@ -41,25 +41,23 @@ export default {
   },
   methods: {
     createPage() {
-      this.graphs = this.pages.map(page => {
+      return this.pages.map(page => {
         return new Graph(this.$refs[page.id][0], null, null, null, this.themes)
       });
     },
     createText(e) {
-      console.log(this.editor,e);
-      this.editor.createText(e);
+      this.$Editor.createText(e);
     },
-    createEditor() {
-      console.log('createEditor')
-      this.editor = new Editor(this.graphs,this.activeId)
-    },
+    // createEditor() {
+    //   console.log('createEditor')
+    //   this.editor = new Editor(this.graphs,this.activeId)
+    // },
     switchGraph() {
-      this.editor.switchGraph(this.activeId)
+      this.$Editor.switchGraph(this.activeId)
     }
   },
   mounted() {
-    this.createPage();
-    this.createEditor();
+    this.$Editor.init(this.createPage(),this.activeId)
   }
 };
 </script>

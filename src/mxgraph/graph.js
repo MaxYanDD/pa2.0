@@ -15,7 +15,6 @@ const {
   mxRectangle,
   mxConnectionHandler,
   mxPopupMenu,
-  mxText,
   mxCellHighlight,
   mxImage,
   mxCellRenderer,
@@ -37,10 +36,10 @@ const {
 	mxValueChange,
 	mxPolyline
 } = mxgraph();
+
 /** 
  *  重置默认配置
  */
-
 mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 960, 720);
 mxGraph.prototype.pageScale = 1;
 
@@ -904,11 +903,6 @@ Graph.prototype.setBgCenter = function () {
 	shadowDom.style.height = `${this.pageFormat.height}px`
 }
 
-/** 
- *  画布预设尺寸	
- */
-Graph.prototype.PAGE_WIDTH = 960;
-Graph.prototype.PAGE_HEIGHT = 540;
 
 /** 
  *  画布阴影	
@@ -937,7 +931,6 @@ Graph.prototype.getCompStyle = function (ele, style) {
 Graph.prototype.bindEvent = function () {
   window.addEventListener('resize', this.setBgCenter.bind(this)); // 设置画布居中
 }
-
 
 
 Graph.prototype.minFitScale = null;
