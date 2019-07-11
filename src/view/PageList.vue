@@ -12,10 +12,10 @@
 </template>
 
 <script>
-// import PageItem from '../components/PageItem'
-// import { createText } from '../mxgraph'
-import Graph from "../mxgraph/Graph";
-import themesXML from "../utils/themesXML";
+import Graph from '../mxgraph/Graph'
+import themesXML from '../utils/themesXML'
+import Editor from '../mxgraph/editor'
+
 export default {
   props: {
     pages: {
@@ -34,19 +34,32 @@ export default {
     this.themes = themesXML();
     this.$bus.$on("createText", this.createText);
   },
+  watch: {
+    activeId(){
+      this.switchGraph()
+    }
+  },
   methods: {
     createPage() {
       this.graphs = this.pages.map(page => {
-        return new Graph(this.$refs[page.id][0], null, null, null, this.themes);
+        return new Graph(this.$refs[page.id][0], null, null, null, this.themes)
       });
     },
-    createText() {
-      console.log( this.graphs[this.activeId]);
-      this.graphs[this.activeId].createText();
+    createText(e) {
+      console.log(this.editor,e);
+      this.editor.createText(e);
+    },
+    createEditor() {
+      console.log('createEditor')
+      this.editor = new Editor(this.graphs,this.activeId)
+    },
+    switchGraph() {
+      this.editor.switchGraph(this.activeId)
     }
   },
   mounted() {
     this.createPage();
+    this.createEditor();
   }
 };
 </script>

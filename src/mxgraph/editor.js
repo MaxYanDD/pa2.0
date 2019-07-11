@@ -1,37 +1,65 @@
 import * as mxgraph from 'mxgraph';
 const {
   mxCell,
-  mxPoint,
-  mxUtils,
-  mxRectangle,
-  mxGeometry
+  mxEventObject,
+  mxGeometry,
+  mxEvent,
+  mxUtils
 } = mxgraph();
 
-function Editor(graph) {
-  this.graph = graph;
-
+function Editor(graphs,id) {
+  this.graphs = graphs;
+  this.init(id)
 }
 
-Editor.prototype.switchGraph = function (graph) {
-  this.graph = graph;
+/**
+ * 编辑器初始化
+ */
+Editor.prototype.init = function(id) {
+  this.activeGraph = this.graphs[id];
+
+  this.graphs.map(graph => {
+    graph.getSelectionModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
+    graph.getModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
+  })
 }
 
-Editor.prototype.createText = function () {
-  let style = ''
+/**
+ * 切换画布
+ */
+Editor.prototype.switchGraph = function (id) {
+  this.activeGraph = this.graphs[id]
 }
 
-Editor.prototype.createShap = function (graph, style, width, height, value, title, showLabel, allowCellsInserted) {
-  var cell = new mxCell((value != null) ? value : '', new mxGeometry(0, 0, width, height), style);
-  cell.geometry.setTerminalPoint(new mxPoint(0, height), true);
-  cell.geometry.setTerminalPoint(new mxPoint(width, 0), false);
-  cell.geometry.relative = true;
+/**
+ * 创建文本框
+ */
+Editor.prototype.createText = function (evt) {
+  let style = 'text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000'
+  let width = 100;
+  let height = 30;
+  let value = '请输入文字';
+  let title = 'Text';
+  let showLabel = null;
+  let allowCellsInserted = true;
+
+  this.createShap(this.activeGraph, style, width, height, value, title, showLabel, allowCellsInserted,evt)
+}
+
+/**
+ * 创建图形
+ */
+Editor.prototype.createShap = function (graph, style, width, height, value, title, showLabel, allowCellsInserted,evt) {
+  var cells = [new mxCell((value != null) ? value : '', new mxGeometry(0, 0, width, height), style)];
+  cells[0].vertex = true;
+  var target = null;
+  var allowSplit = true;
 
   var pt = graph.getFreeInsertPoint();
   var x = pt.x;
   var y = pt.y;
 
-  let cells = graph.getImportableCells([cells]);
-
+  cells = graph.getImportableCells(cells);
   if (cells.length > 0) {
     graph.stopEditing();
 
@@ -40,10 +68,9 @@ Editor.prototype.createShap = function (graph, style, width, height, value, titl
       graph.isValidDropTarget(target, cells, evt) : false;
     var select = null;
 
-    if (target != null && !validDropTarget) {
-      target = null;
-    }
-
+    // if (target != null && !validDropTarget) {
+    //   target = null;
+    // }
     if (!graph.isCellLocked(target || graph.getDefaultParent())) {
       graph.model.beginUpdate();
       try {
@@ -57,9 +84,9 @@ Editor.prototype.createShap = function (graph, style, width, height, value, titl
             x - bounds.width / 2, y - bounds.height / 2);
           select = clones;
         } else if (cells.length > 0) {
+
           select = graph.importCells(cells, x, y, target);
         }
-
         // Executes parent layout hooks for position/order
         if (graph.layoutManager != null) {
           var layout = graph.layoutManager.getLayout(target);
@@ -80,13 +107,14 @@ Editor.prototype.createShap = function (graph, style, width, height, value, titl
           graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
         }
       } catch (e) {
-        this.editorUi.handleError(e);
+        // TODO error handler
+        console.log(e)
       } finally {
         graph.model.endUpdate();
       }
 
       if (select != null && select.length > 0) {
-        graph.scrollCellToVisible(select[0]);
+        // graph.scrollCellToVisible(select[0]);
         graph.setSelectionCells(select);
       }
 
@@ -98,13 +126,49 @@ Editor.prototype.createShap = function (graph, style, width, height, value, titl
       }
     }
 
-    if (this.editorUi.hoverIcons != null) {
-      this.editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
-    }
-
+    // if (this.editorUi.hoverIcons != null) {
+    //   this.editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
+    // }
   }
-
 }
 
+/**
+ * 选中cell时，更新toolbar的状态
+ */
+Editor.prototype.updateToolBarStates = function(){
+	var graph = this.activeGraph;
+	var selected = !graph.isSelectionEmpty();
+	var vertexSelected = false;
+	var edgeSelected = false;
+
+	var cells = graph.getSelectionCells();
+	if (cells != null)
+	{
+    	for (var i = 0; i < cells.length; i++)
+    	{
+    		var cell = cells[i];
+    		
+    		if (graph.getModel().isEdge(cell))
+    		{
+    			edgeSelected = true;
+    		}
+    		
+    		if (graph.getModel().isVertex(cell))
+    		{
+    			vertexSelected = true;
+    		}
+    		
+    		if (edgeSelected && vertexSelected)
+			{
+				break;
+			}
+		}
+  }
+  
+  var state = graph.view.getState(graph.getSelectionCell());
+
+  console.log(state);
+
+}
 
 export default Editor

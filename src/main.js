@@ -2,7 +2,7 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import App from './App'
-import { Dropdown,DropdownMenu,DropdownItem,Tooltip,ColorPicker } from 'element-ui'
+import { Dropdown,DropdownMenu,DropdownItem,Tooltip,ColorPicker,Select,Option } from 'element-ui'
 import vcolorpicker from 'vcolorpicker'
 import './assets/css/reset.css'
 import 'font-awesome/css/font-awesome.min.css'
@@ -16,10 +16,10 @@ Vue.use(DropdownMenu);
 Vue.use(DropdownItem);
 Vue.use(Tooltip);
 Vue.use(ColorPicker);
-window.graph = []
+Vue.use(Select);
+Vue.use(Option);
 // vcolorpicker
 Vue.use(vcolorpicker)
-
 
 /* eslint-disable no-new */
 new Vue({

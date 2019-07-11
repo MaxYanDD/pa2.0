@@ -22,13 +22,26 @@ const {
   mxConnector,
   mxStencil,
 	mxStencilRegistry,
-	mxLayoutManager
+	mxLayoutManager,
+	mxVertexHandler,
+	mxEdgeHandler,
+	mxGraphHandler,
+	mxRubberband,
+	mxGuide,
+	mxConstraintHandler,
+	mxCellEditor,
+	mxOutline,
+	mxPanningHandler,
+	mxCodec,
+	mxDragSource,
+	mxValueChange,
+	mxPolyline
 } = mxgraph();
-
 /** 
  *  重置默认配置
  */
-mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 960, 540)
+
+mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 960, 720);
 mxGraph.prototype.pageScale = 1;
 
 /** 
@@ -45,9 +58,7 @@ let Graph = function (container, model, renderHint, stylesheet, themes) {
 
   // 设置画布居中
   this.pageVisible = true; // 显示画布
-  this.root = this.view.getCanvas();
-  this.view.validateBackground();
-  this.setPageCenter()
+	this.setBgCenter()
   this.bindEvent()
 
   this.currentEdgeStyle = mxUtils.clone(this.defaultEdgeStyle);
@@ -312,12 +323,12 @@ let Graph = function (container, model, renderHint, stylesheet, themes) {
 
   // All code below not available and not needed in embed mode
   if (typeof mxVertexHandler !== 'undefined') {
-    this.setConnectable(true);
+    this.setConnectable(false);
     this.setDropEnabled(true);
     this.setPanning(true);
     this.setTooltips(true);
     this.setAllowLoops(true);
-    this.allowAutoPanning = true;
+    this.allowAutoPanning = false;
     this.resetEdgesOnConnect = false;
     this.constrainChildren = false;
     this.constrainRelativeChildren = true;
@@ -728,6 +739,9 @@ let Graph = function (container, model, renderHint, stylesheet, themes) {
 
   }
 
+
+	
+
 }
 
 Graph.touchStyle = mxClient.IS_TOUCH || (mxClient.IS_FF && mxClient.IS_WIN) || navigator.maxTouchPoints > 0 ||
@@ -864,16 +878,31 @@ Graph.decompress = function(data, inflate)
 mxUtils.extend(Graph, mxGraph)
 
 /** 
- *  设置画布缩放比例	
+ *  获取background居中的translate	
  */
-Graph.prototype.setPageCenter = function () {
-  let wrapWidth = parseInt(this.getCompStyle(this.container_wrap(), 'width'));
-  let wrapHeight = parseInt(this.getCompStyle(this.container_wrap(), 'height'));
-  let translateString = `translate(${Math.floor((wrapWidth-this.PAGE_WIDTH*this.pageScale)/2)}px,${Math.floor((wrapHeight-this.PAGE_HEIGHT*this.pageScale)/2)}px) scale(${this.pageScale})`;
-  this.root.style.transform = translateString;
-  this.shadow_box().style.transform = translateString;
-}
+Graph.prototype.getBgCenterTranslate = function () {
+	let contaner_warp = this.container_wrap();
+  let wrapWidth = parseInt(this.getCompStyle(contaner_warp, 'width'));
+	let wrapHeight = parseInt(this.getCompStyle(contaner_warp, 'height'));
 
+	let x = Math.floor((wrapWidth-this.pageFormat.width*this.pageScale)/2);
+	let y = Math.floor((wrapHeight-this.pageFormat.height*this.pageScale)/2);
+	return {x,y}
+}
+/** 
+ *  设置background和阴影居中
+ */
+Graph.prototype.setBgCenter = function () {
+	// 设置bg
+	let {x,y} = this.getBgCenterTranslate()
+	this.view.scaleAndTranslate(this.pageScale, x,y)
+	this.view.validateBackground();
+	// 设置阴影
+	let shadowDom = this.shadowBox();
+	shadowDom.style.transform = `translate(${x}px,${y}px) scale(${this.pageScale})`;
+	shadowDom.style.width = `${this.pageFormat.width}px`
+	shadowDom.style.height = `${this.pageFormat.height}px`
+}
 
 /** 
  *  画布预设尺寸	
@@ -884,7 +913,7 @@ Graph.prototype.PAGE_HEIGHT = 540;
 /** 
  *  画布阴影	
  */
-Graph.prototype.shadow_box = function () {
+Graph.prototype.shadowBox = function () {
   return document.querySelector('.shadow')
 };
 
@@ -906,7 +935,7 @@ Graph.prototype.getCompStyle = function (ele, style) {
  *  绑定DOM事件
  */
 Graph.prototype.bindEvent = function () {
-  window.addEventListener('resize', this.setPageCenter.bind(this)); // 设置画布居中
+  window.addEventListener('resize', this.setBgCenter.bind(this)); // 设置画布居中
 }
 
 
@@ -7259,7 +7288,7 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 		};
 		
-		mxCellEditorGetInitialValue = mxCellEditor.prototype.getInitialValue;
+		var mxCellEditorGetInitialValue = mxCellEditor.prototype.getInitialValue;
 		mxCellEditor.prototype.getInitialValue = function(state, trigger)
 		{
 			if (mxUtils.getValue(state.style, 'html', '0') == '0')
@@ -7281,7 +7310,7 @@ if (typeof mxVertexHandler != 'undefined')
 			}
 		};
 		
-		mxCellEditorGetCurrentValue = mxCellEditor.prototype.getCurrentValue;
+		var mxCellEditorGetCurrentValue = mxCellEditor.prototype.getCurrentValue;
 		mxCellEditor.prototype.getCurrentValue = function(state)
 		{
 			if (mxUtils.getValue(state.style, 'html', '0') == '0')

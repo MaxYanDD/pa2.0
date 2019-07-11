@@ -1,5 +1,5 @@
 <template>
-  <el-tooltip class="tool-item" effect="dark" :content="content" placement="bottom-start"  transition="none" :enterable="false">
+  <el-tooltip class="tool-item" effect="dark" :content="content" placement="bottom"  transition="none" :enterable="false" :hide-after="700">
     <slot></slot>
   </el-tooltip>
 </template>

@@ -3,7 +3,7 @@
 </template>
 <script>
 import * as mxgraph from "mxgraph"
-import { Graph } from '../mxgraph/graph'
+import { Graph } from '../mxgraph/Graph'
 export default {
   props: {
     page: {
