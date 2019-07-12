@@ -34,7 +34,9 @@ const {
 	mxCodec,
 	mxDragSource,
 	mxValueChange,
-	mxPolyline
+	mxPolyline,
+	mxStylesheet,
+	mxDictionary 
 } = mxgraph();
 
 /** 
@@ -47,8 +49,9 @@ mxGraph.prototype.pageScale = 1;
  *  Graph构造函数	
  */
 let Graph = function (container, model, renderHint, stylesheet, themes) {
-  mxGraph.call(this, container, model, renderHint, stylesheet)
-  this.themes = themes || this.defaultThemes;
+	mxGraph.call(this, container, model, renderHint, stylesheet)
+	this.themes = themes || this.defaultThemes;
+	console.log(this.themes);
   this.container = container;
 
   // 设置svg position属性
@@ -347,11 +350,10 @@ let Graph = function (container, model, renderHint, stylesheet, themes) {
 
     // Sets the style to be used when an elbow edge is double clicked
     this.alternateEdgeStyle = 'vertical';
-
     if (stylesheet == null) {
       this.loadStylesheet();
-    }
-
+		}
+		console.log(this.stylesheet);
     // Adds page centers to the guides for moving cells
     var graphHandlerGetGuideStates = this.graphHandler.getGuideStates;
     this.graphHandler.getGuideStates = function () {
@@ -4807,14 +4809,15 @@ if (typeof mxVertexHandler != 'undefined')
 		 */
 		Graph.prototype.loadStylesheet = function()
 		{
-			var node = (this.themes != null) ? this.themes[this.defaultThemeName] :
-				(!mxStyleRegistry.dynamicLoading) ? null :
-				mxUtils.load(STYLE_PATH + '/default.xml').getDocumentElement();
-			
+			// var node = (this.themes != null) ? this.themes[this.defaultThemeName] :
+			// 	(!mxStyleRegistry.dynamicLoading) ? null :
+			// 	mxUtils.load('/static/default.xml').getDocumentElement();
+			// console.log(node);
+			var node = this.themes['default'];
 			if (node != null)
 			{
 				var dec = new mxCodec(node.ownerDocument);
-				dec.decode(node, this.getStylesheet());
+				dec.decode(node, this.getStylesheet(), mxStylesheet);
 			}
 		};
 

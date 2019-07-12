@@ -3,8 +3,8 @@ const xmlString = `
   <add as="defaultVertex">
     <add as="shape" value="label"/>
     <add as="perimeter" value="rectanglePerimeter"/>
-    <add as="fontSize" value="12"/>
-    <add as="fontFamily" value="Helvetica"/>
+    <add as="fontSize" value="16"/>
+    <add as="fontFamily" value="Microsoft YaHei"/>
     <add as="align" value="center"/>
     <add as="verticalAlign" value="middle"/>
     <add as="fillColor" value="#ffffff"/>
@@ -16,7 +16,7 @@ const xmlString = `
     <add as="labelBackgroundColor" value="#ffffff"/>
     <add as="endArrow" value="classic"/>
     <add as="fontSize" value="11"/>
-    <add as="fontFamily" value="Helvetica"/>
+    <add as="fontFamily" value="Microsoft YaHei"/>
     <add as="align" value="center"/>
     <add as="verticalAlign" value="middle"/>
     <add as="rounded" value="1"/>

@@ -33,6 +33,7 @@ export default {
   created() {
     this.themes = themesXML();
     this.$bus.$on("createText", this.createText);
+    this.$bus.$on("changeStyle", this.changeStyle)
   },
   watch: {
     activeId(){
@@ -48,10 +49,9 @@ export default {
     createText(e) {
       this.$Editor.createText(e);
     },
-    // createEditor() {
-    //   console.log('createEditor')
-    //   this.editor = new Editor(this.graphs,this.activeId)
-    // },
+    changeStyle(style,value){
+      console.log(style,value);
+    },
     switchGraph() {
       this.$Editor.switchGraph(this.activeId)
     }

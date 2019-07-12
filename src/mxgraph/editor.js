@@ -1,128 +1,169 @@
-import * as mxgraph from 'mxgraph';
-const {
-  mxCell,
-  mxEventObject,
-  mxGeometry,
-  mxEvent,
-  mxUtils
-} = mxgraph();
+import * as mxgraph from 'mxgraph'
+const { mxCell, mxEventObject, mxGeometry, mxEvent, mxUtils } = mxgraph()
 
 function Editor(bus) {
-  this.$bus = bus;
+  this.$bus = bus
 }
 
 /**
  * 编辑器初始化
  */
-Editor.prototype.init = function(graphs,id) {
-  this.graphs = graphs;
-  this.activeGraph = this.graphs[id];
+Editor.prototype.init = function(graphs, id) {
+  this.graphs = graphs
+  this.activeGraph = this.graphs[id]
 
   this.graphs.map(graph => {
-    graph.getSelectionModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
-    graph.getModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
+    graph
+      .getSelectionModel()
+      .addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this))
+    // graph.getModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
+    graph.addListener('cellsInserted', (sender, evt) => {
+      this.insertHandler(evt.getProperty('cells'))
+    })
+    // TODO styleChanged 有什么用？
+    // graph.addListener('styleChanged', (sender, evt) => {
+    //   this.styleChanged(evt)
+    // })
   })
 }
 
 /**
  * 切换画布
  */
-Editor.prototype.switchGraph = function (id) {
+Editor.prototype.switchGraph = function(id) {
   this.activeGraph = this.graphs[id]
 }
 
 /**
  * 创建文本框
  */
-Editor.prototype.createText = function (evt) {
-  let style = 'text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000'
-  let width = 100;
-  let height = 30;
-  let value = '请输入文字';
-  let title = 'Text';
-  let showLabel = null;
-  let allowCellsInserted = true;
+Editor.prototype.createText = function(evt) {
+  let style =
+    'text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000'
+  let width = 100
+  let height = 30
+  let value = '双击输入文字'
+  let title = 'Text'
+  let showLabel = null
+  let allowCellsInserted = true
 
-  this.createShap(this.activeGraph, style, width, height, value, title, showLabel, allowCellsInserted,evt)
+  this.createShap(
+    this.activeGraph,
+    style,
+    width,
+    height,
+    value,
+    title,
+    showLabel,
+    allowCellsInserted,
+    evt
+  )
 }
 
 /**
  * 创建图形
  */
-Editor.prototype.createShap = function (graph, style, width, height, value, title, showLabel, allowCellsInserted,evt) {
-  var cells = [new mxCell((value != null) ? value : '', new mxGeometry(0, 0, width, height), style)];
-  cells[0].vertex = true;
-  var target = null;
-  var allowSplit = true;
+Editor.prototype.createShap = function(
+  graph,
+  style,
+  width,
+  height,
+  value,
+  title,
+  showLabel,
+  allowCellsInserted,
+  evt
+) {
+  var cells = [
+    new mxCell(
+      value != null ? value : '',
+      new mxGeometry(0, 0, width, height),
+      style
+    )
+  ]
+  cells[0].vertex = true
+  var target = null
+  var allowSplit = true
 
-  var pt = graph.getFreeInsertPoint();
-  var x = pt.x;
-  var y = pt.y;
+  var pt = graph.getFreeInsertPoint()
+  var x = pt.x
+  var y = pt.y
 
-  cells = graph.getImportableCells(cells);
+  cells = graph.getImportableCells(cells)
   if (cells.length > 0) {
-    graph.stopEditing();
+    graph.stopEditing()
 
     // Holding alt while mouse is released ignores drop target
-    var validDropTarget = (target != null && !mxEvent.isAltDown(evt)) ?
-      graph.isValidDropTarget(target, cells, evt) : false;
-    var select = null;
+    var validDropTarget =
+      target != null && !mxEvent.isAltDown(evt)
+        ? graph.isValidDropTarget(target, cells, evt)
+        : false
+    var select = null
 
     // if (target != null && !validDropTarget) {
     //   target = null;
     // }
     if (!graph.isCellLocked(target || graph.getDefaultParent())) {
-      graph.model.beginUpdate();
+      graph.model.beginUpdate()
       try {
-        x = Math.round(x);
-        y = Math.round(y);
+        x = Math.round(x)
+        y = Math.round(y)
 
         // Splits the target edge or inserts into target group
         if (allowSplit && graph.isSplitTarget(target, cells, evt)) {
-          var clones = graph.cloneCells(cells);
-          graph.splitEdge(target, clones, null,
-            x - bounds.width / 2, y - bounds.height / 2);
-          select = clones;
+          var clones = graph.cloneCells(cells)
+          graph.splitEdge(
+            target,
+            clones,
+            null,
+            x - bounds.width / 2,
+            y - bounds.height / 2
+          )
+          select = clones
         } else if (cells.length > 0) {
-
-          select = graph.importCells(cells, x, y, target);
+          select = graph.importCells(cells, x, y, target)
         }
         // Executes parent layout hooks for position/order
         if (graph.layoutManager != null) {
-          var layout = graph.layoutManager.getLayout(target);
+          var layout = graph.layoutManager.getLayout(target)
 
           if (layout != null) {
-            var s = graph.view.scale;
-            var tr = graph.view.translate;
-            var tx = (x + tr.x) * s;
-            var ty = (y + tr.y) * s;
+            var s = graph.view.scale
+            var tr = graph.view.translate
+            var tx = (x + tr.x) * s
+            var ty = (y + tr.y) * s
 
             for (var i = 0; i < select.length; i++) {
-              layout.moveCell(select[i], tx, ty);
+              layout.moveCell(select[i], tx, ty)
             }
           }
         }
 
         if (allowCellsInserted && (evt == null || !mxEvent.isShiftDown(evt))) {
-          graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select));
+          graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select))
         }
       } catch (e) {
         // TODO error handler
         console.log(e)
       } finally {
-        graph.model.endUpdate();
+        graph.model.endUpdate()
       }
 
       if (select != null && select.length > 0) {
         // graph.scrollCellToVisible(select[0]);
-        graph.setSelectionCells(select);
+        graph.setSelectionCells(select)
       }
 
-      if (graph.editAfterInsert && evt != null && mxEvent.isMouseEvent(evt) &&
-        select != null && select.length == 1) {
-        window.setTimeout(function () {
-          graph.startEditing(select[0]);
-        }, 0);
+      if (
+        graph.editAfterInsert &&
+        evt != null &&
+        mxEvent.isMouseEvent(evt) &&
+        select != null &&
+        select.length == 1
+      ) {
+        window.setTimeout(function() {
+          graph.startEditing(select[0])
+        }, 0)
       }
     }
 
@@ -135,39 +176,291 @@ Editor.prototype.createShap = function (graph, style, width, height, value, titl
 /**
  * 选中cell时，更新toolbar的状态
  */
-Editor.prototype.updateToolBarStates = function(){
-	var graph = this.activeGraph;
-	var selected = !graph.isSelectionEmpty();
-	var vertexSelected = false;
-	var edgeSelected = false;
+Editor.prototype.updateToolBarStates = function() {
+  var graph = this.activeGraph
+  var selected = !graph.isSelectionEmpty()
+  var vertexSelected = false
+  var edgeSelected = false
 
-	var cells = graph.getSelectionCells();
-	if (cells != null)
-	{
-    	for (var i = 0; i < cells.length; i++)
-    	{
-    		var cell = cells[i];
-    		
-    		if (graph.getModel().isEdge(cell))
-    		{
-    			edgeSelected = true;
-    		}
-    		
-    		if (graph.getModel().isVertex(cell))
-    		{
-    			vertexSelected = true;
-    		}
-    		
-    		if (edgeSelected && vertexSelected)
-			{
-				break;
-			}
-		}
+  var cells = graph.getSelectionCells()
+  if (cells != null) {
+    for (var i = 0; i < cells.length; i++) {
+      var cell = cells[i]
+
+      if (graph.getModel().isEdge(cell)) {
+        edgeSelected = true
+      }
+
+      if (graph.getModel().isVertex(cell)) {
+        vertexSelected = true
+      }
+
+      if (edgeSelected && vertexSelected) {
+        break
+      }
+    }
   }
 
-  var state = graph.view.getState(graph.getSelectionCell());
+  var state = graph.view.getState(graph.getSelectionCell())
 
-  this.$bus.$emit('updateToolBarStates',state)
+  this.$bus.$emit('updateToolBarStates', state, vertexSelected, edgeSelected)
 }
 
+/**
+ * 为新建cell添加style
+ */
+Editor.prototype.insertHandler = function(cells, asText) {
+  var styles = [
+    'rounded',
+    'shadow',
+    'glass',
+    'dashed',
+    'dashPattern',
+    'comic',
+    'labelBackgroundColor'
+  ]
+  var connectStyles = [
+    'shape',
+    'edgeStyle',
+    'curved',
+    'rounded',
+    'elbow',
+    'comic',
+    'jumpStyle',
+    'jumpSize'
+  ]
+  var valueStyles = ['fontFamily', 'fontSize', 'fontColor']
+
+  // Keys that always update the current edge style regardless of selection
+  var alwaysEdgeStyles = [
+    'edgeStyle',
+    'startArrow',
+    'startFill',
+    'startSize',
+    'endArrow',
+    'endFill',
+    'endSize'
+  ]
+
+  // Keys that are ignored together (if one appears all are ignored)
+  var keyGroups = [
+    [
+      'startArrow',
+      'startFill',
+      'startSize',
+      'sourcePerimeterSpacing',
+      'endArrow',
+      'endFill',
+      'endSize',
+      'targetPerimeterSpacing'
+    ],
+    ['strokeColor', 'strokeWidth'],
+    ['fillColor', 'gradientColor'],
+    valueStyles,
+    ['opacity'],
+    ['align'],
+    ['html']
+  ]
+
+  // Adds all keys used above to the styles array
+  for (var i = 0; i < keyGroups.length; i++) {
+    for (var j = 0; j < keyGroups[i].length; j++) {
+      styles.push(keyGroups[i][j])
+    }
+  }
+
+  for (var i = 0; i < connectStyles.length; i++) {
+    if (mxUtils.indexOf(styles, connectStyles[i]) < 0) {
+      styles.push(connectStyles[i])
+    }
+  }
+
+  var graph = this.activeGraph
+  var model = graph.getModel()
+
+  model.beginUpdate()
+  try {
+    // Applies only basic text styles
+    if (asText) {
+      var edge = model.isEdge(cell)
+      var current = edge ? graph.currentEdgeStyle : graph.currentVertexStyle
+      var textStyles = ['fontSize', 'fontFamily', 'fontColor']
+
+      for (var j = 0; j < textStyles.length; j++) {
+        var value = current[textStyles[j]]
+
+        if (value != null) {
+          graph.setCellStyles(textStyles[j], value, cells)
+        }
+      }
+    } else {
+      for (var i = 0; i < cells.length; i++) {
+        var cell = cells[i]
+
+        // Removes styles defined in the cell style from the styles to be applied
+        var cellStyle = model.getStyle(cell)
+        var tokens = cellStyle != null ? cellStyle.split(';') : []
+        var appliedStyles = styles.slice()
+
+        for (var j = 0; j < tokens.length; j++) {
+          var tmp = tokens[j]
+          var pos = tmp.indexOf('=')
+
+          if (pos >= 0) {
+            var key = tmp.substring(0, pos)
+            var index = mxUtils.indexOf(appliedStyles, key)
+
+            if (index >= 0) {
+              appliedStyles.splice(index, 1)
+            }
+
+            // Handles special cases where one defined style ignores other styles
+            for (var k = 0; k < keyGroups.length; k++) {
+              var group = keyGroups[k]
+
+              if (mxUtils.indexOf(group, key) >= 0) {
+                for (var l = 0; l < group.length; l++) {
+                  var index2 = mxUtils.indexOf(appliedStyles, group[l])
+
+                  if (index2 >= 0) {
+                    appliedStyles.splice(index2, 1)
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Applies the current style to the cell
+        var edge = model.isEdge(cell)
+        var current = edge ? graph.currentEdgeStyle : graph.currentVertexStyle
+        var newStyle = model.getStyle(cell)
+
+        for (var j = 0; j < appliedStyles.length; j++) {
+          var key = appliedStyles[j]
+          var styleValue = current[key]
+
+          if (styleValue != null && (key != 'shape' || edge)) {
+            // Special case: Connect styles are not applied here but in the connection handler
+            if (!edge || mxUtils.indexOf(connectStyles, key) < 0) {
+              newStyle = mxUtils.setStyle(newStyle, key, styleValue)
+              console.log('here', key, styleValue)
+            }
+          }
+        }
+
+        model.setStyle(cell, newStyle)
+      }
+    }
+  } finally {
+    model.endUpdate()
+  }
+}
+
+/**
+ * 改变样式
+ */
+Editor.prototype.changeStyle = function(key, value) {
+  var graph = this.activeGraph
+  graph.stopEditing(false)
+
+
+
+  graph.getModel().beginUpdate()
+  try {
+    // for (var i = 0; i < keys.length; i++)
+    // {
+    //   graph.setCellStyles(keys[i], values[i]);
+    // }
+
+    // if (post != null)
+    // {
+    //   post();
+    // }
+    graph.setCellStyles(key, value)
+    graph.fireEvent(
+      new mxEventObject(
+        'styleChanged',
+        'keys',
+        [key],
+        'values',
+        [value],
+        'cells',
+        graph.getSelectionCells()
+      )
+    )
+  } finally {
+    graph.getModel().endUpdate()
+  }
+}
+
+/**
+ * 样式改变了后
+ */
+Editor.prototype.styleChanged = function(evt) {
+  var cells = evt.getProperty('cells')
+  var graph = this.activeGraph
+  var vertex = false
+  var edge = false
+  if (cells.length > 0) {
+    for (var i = 0; i < cells.length; i++) {
+      vertex = graph.getModel().isVertex(cells[i]) || vertex
+      edge = graph.getModel().isEdge(cells[i]) || edge
+      if (edge && vertex) {
+        break
+      }
+    }
+  } else {
+    vertex = true
+    edge = true
+  }
+
+  var keys = evt.getProperty('keys')
+  var values = evt.getProperty('values')
+
+  for (var i = 0; i < keys.length; i++) {
+    var common = mxUtils.indexOf(valueStyles, keys[i]) >= 0
+
+    // Ignores transparent stroke colors
+    if (
+      keys[i] != 'strokeColor' ||
+      (values[i] != null && values[i] != 'none')
+    ) {
+      // Special case: Edge style and shape
+      if (mxUtils.indexOf(connectStyles, keys[i]) >= 0) {
+        if (edge || mxUtils.indexOf(alwaysEdgeStyles, keys[i]) >= 0) {
+          if (values[i] == null) {
+            delete graph.currentEdgeStyle[keys[i]]
+          } else {
+            graph.currentEdgeStyle[keys[i]] = values[i]
+          }
+        }
+        // Uses style for vertex if defined in styles
+        else if (vertex && mxUtils.indexOf(styles, keys[i]) >= 0) {
+          if (values[i] == null) {
+            delete graph.currentVertexStyle[keys[i]]
+          } else {
+            graph.currentVertexStyle[keys[i]] = values[i]
+          }
+        }
+      } else if (mxUtils.indexOf(styles, keys[i]) >= 0) {
+        if (vertex || common) {
+          if (values[i] == null) {
+            delete graph.currentVertexStyle[keys[i]]
+          } else {
+            graph.currentVertexStyle[keys[i]] = values[i]
+          }
+        }
+
+        if (edge || common || mxUtils.indexOf(alwaysEdgeStyles, keys[i]) >= 0) {
+          if (values[i] == null) {
+            delete graph.currentEdgeStyle[keys[i]]
+          } else {
+            graph.currentEdgeStyle[keys[i]] = values[i]
+          }
+        }
+      }
+    }
+  }
+}
 export default Editor
