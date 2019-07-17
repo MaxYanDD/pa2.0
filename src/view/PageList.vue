@@ -32,13 +32,6 @@ export default {
   components: {},
   created() {
     this.themes = themesXML();
-    this.$bus.$on("createText", this.createText);
-    this.$bus.$on("changeStyle", this.changeStyle)
-  },
-  watch: {
-    activeId(){
-      this.switchGraph()
-    }
   },
   methods: {
     createPage() {
@@ -46,15 +39,6 @@ export default {
         return new Graph(this.$refs[page.id][0], null, null, null, this.themes)
       });
     },
-    createText(e) {
-      this.$Editor.createText(e);
-    },
-    changeStyle(style,value){
-      console.log(style,value);
-    },
-    switchGraph() {
-      this.$Editor.switchGraph(this.activeId)
-    }
   },
   mounted() {
     this.$Editor.init(this.createPage(),this.activeId)

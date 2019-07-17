@@ -49,10 +49,10 @@ export default {
   created() {
     this.$bus.$on('changeActive', id => {
       this.activeId = id;
+      this.$Editor.switchGraph(this.activeId)
     })
   },
   mounted() {
-  
   }
 };
 </script>

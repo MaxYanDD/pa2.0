@@ -1,5 +1,5 @@
 <template>
-  <div class="toolsbar">
+  <div class="toolsbar" onmousedown="event.preventDefault();">
     <ToolTip content="保存" class="tool-item">
       <a>
         <i class="iconfont icon-baocun"></i>
@@ -28,14 +28,14 @@
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="文本框">
-      <a @click="addText">
+      <a @click="insertText">
         <i class="iconfont icon-twenbenkuang"></i>
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="图片">
-      <a>
+      <a @click="insertImage">
         <i class="iconfont icon-tupian"></i>
-        <i class="iconfont icon-arrow-drop-down"></i>
+        <!-- <i class="iconfont icon-arrow-drop-down"></i> -->
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="形状">
@@ -45,9 +45,9 @@
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="直线">
-      <a>
+      <a @click="insertLine">
         <i class="iconfont icon-Line-Tool"></i>
-        <i class="iconfont icon-arrow-drop-down"></i>
+        <!-- <i class="iconfont icon-arrow-drop-down"></i> -->
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="表格">
@@ -58,13 +58,14 @@
     <div class="toolbar-separator"></div>
 
     <!-- 文本框和多边形可用的编辑选项 -->
-    <div v-show="vertexSelected && !edgeSelected" class="modifier">
+    <div v-show="currentshape == 'label'" class="modifier" onmousedown="event.preventDefault();">
       <ToolTip class="tool-item" content="填充颜色">
         <a>
           <i class="iconfont icon-tianchong"></i>
           <div class="pickerbox">
             <el-color-picker
-              v-model="fillColor"
+              v-model="currentShapeStyle.fillColor"
+              :show-alpha="true"
               @change="fillColor => changeStyle('fillColor',fillColor)"
             ></el-color-picker>
           </div>
@@ -75,19 +76,29 @@
           <i class="iconfont icon-pen"></i>
           <div class="pickerbox">
             <el-color-picker
-              v-model="borderColor"
+              v-model="currentShapeStyle.strokeColor"
+              :show-alpha="true"
               @change="strokeColor => changeStyle('strokeColor',strokeColor)"
             ></el-color-picker>
           </div>
         </a>
       </ToolTip>
       <ToolTip class="tool-item" content="边框粗细">
-        <el-dropdown trigger="click" placement="bottom-start" size="mini" @command="cmd => changeStyle('strokeWidth',cmd)">
+        <el-dropdown
+          trigger="click"
+          placement="bottom-start"
+          size="mini"
+          @command="cmd => changeStyle('strokeWidth',cmd)"
+        >
           <span class="el-dropdown-link">
             <i class="iconfont icon-xiantiaocuxi1"></i>
           </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item v-for="item in strokeWidthList" :command="item.value" :key="item.value">{{item.label}}</el-dropdown-item>
+          <el-dropdown-menu slot="dropdown" class="el-dropdown-override">
+            <el-dropdown-item
+              v-for="item in strokeWidthList"
+              :command="item.value"
+              :key="item.value"
+            >{{item.label}}</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </ToolTip>
@@ -99,11 +110,12 @@
       <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="字体">
         <el-select
-          v-model="fontFamily"
+          v-model="currentShapeStyle.fontFamily"
           placeholder="请选择"
           class="el-select-override el-ff tool-item"
           popper-class="el-popper-override"
           @change="fontFamily => changeStyle('fontFamily',fontFamily)"
+          :popper-append-to-body="false"
         >
           <el-option
             v-for="item in fontFamilyList"
@@ -117,7 +129,7 @@
       <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="字号">
         <el-select
-          v-model="fontSize"
+          v-model="currentShapeStyle.fontSize"
           placeholder="12"
           class="el-select-override el-fz tool-item"
           popper-class="el-popper-override"
@@ -128,17 +140,17 @@
       </ToolTip>
       <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="粗体">
-        <a>
+        <a onmousedown="event.preventDefault();" @click="e => toggleFontStyle(e,'bold')">
           <i class="iconfont icon-font-weight"></i>
         </a>
       </ToolTip>
       <ToolTip class="tool-item" content="斜体">
-        <a>
+        <a onmousedown="event.preventDefault();" @click="e => toggleFontStyle(e, 'italic')">
           <i class="iconfont icon-Italic"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="下划线">
-        <a>
+      <ToolTip onmousedown="event.preventDefault();" class="tool-item" content="下划线">
+        <a @click="e => toggleFontStyle(e, 'underline')">
           <i class="iconfont icon-Underline"></i>
         </a>
       </ToolTip>
@@ -147,10 +159,110 @@
           <i class="iconfont icon-zimua"></i>
           <div class="pickerbox">
             <el-color-picker
-              v-model="fontColor"
+              v-model="currentShapeStyle.fontColor"
+              :show-alpha="true"
               @change="fontColor => changeStyle('fontColor',fontColor)"
             ></el-color-picker>
           </div>
+        </a>
+      </ToolTip>
+    </div>
+    <!-- 图片可用的编辑选项 -->
+    <div v-show="currentshape == 'image'" class="modifier">
+      <ToolTip class="tool-item" content="边框颜色">
+        <a>
+          <i class="iconfont icon-pen"></i>
+          <div class="pickerbox">
+            <el-color-picker
+              v-model="currentShapeStyle.imgBorderColor"
+              :show-alpha="true"
+              @change="Color => changeStyle('imageBorder',Color)"
+            ></el-color-picker>
+          </div>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="边框粗细">
+        <el-dropdown
+          trigger="click"
+          placement="bottom-start"
+          size="mini"
+          @command="cmd => changeStyle('strokeWidth',cmd)"
+        >
+          <span class="el-dropdown-link">
+            <i class="iconfont icon-xiantiaocuxi1"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown" class="el-dropdown-override">
+            <el-dropdown-item
+              v-for="item in strokeWidthList"
+              :command="item.value"
+              :key="item.value"
+            >{{item.label}}</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+      </ToolTip>
+      <ToolTip class="tool-item" content="边框线型(待开发)">
+        <a>
+          <i class="iconfont icon-ic_line_style"></i>
+        </a>
+      </ToolTip>
+      <div class="toolbar-separator"></div>
+      <ToolTip class="tool-item" content="更换图片">
+        <a @click="changeImage">
+          <i class="iconfont icon-zhongzhitupian"></i>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="裁剪(待开发)">
+        <a>
+          <i class="iconfont icon-caijian"></i>
+        </a>
+      </ToolTip>
+    </div>
+    <!-- 线条可用的编辑选项 -->
+    <div v-show="currentshape == 'connector'" class="modifier">
+      <ToolTip class="tool-item" content="边框颜色">
+        <a>
+          <i class="iconfont icon-pen"></i>
+          <div class="pickerbox">
+            <el-color-picker
+              v-model="currentShapeStyle.imgBorderColor"
+              :show-alpha="true"
+              @change="Color => changeStyle('strokeColor',Color)"
+            ></el-color-picker>
+          </div>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="边框粗细">
+        <el-dropdown
+          trigger="click"
+          placement="bottom-start"
+          size="mini"
+          @command="cmd => changeStyle('strokeWidth',cmd)"
+        >
+          <span class="el-dropdown-link">
+            <i class="iconfont icon-xiantiaocuxi1"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown" class="el-dropdown-override">
+            <el-dropdown-item
+              v-for="item in strokeWidthList"
+              :command="item.value"
+              :key="item.value"
+            >{{item.label}}</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+      </ToolTip>
+      <ToolTip class="tool-item" content="边框线型(待开发)">
+        <a>
+          <i class="iconfont icon-ic_line_style"></i>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="线条始点">
+        <a>
+          <i class="iconfont icon-jiang-right"></i>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="线条终点">
+        <a>
+          <i class="iconfont icon-jiang-copy"></i>
         </a>
       </ToolTip>
     </div>
@@ -160,13 +272,11 @@
 import * as mxgraph from "mxgraph";
 import ToolTip from "../components/ToolTip";
 import store from "../store";
+
+const { mxConstatns } = mxgraph();
 export default {
   data() {
     return {
-      fillColor: "#000",
-      borderColor: "#000",
-      fontColor: "#000",
-      strokeWidth: 0,
       fontFamilyList: [
         {
           value: "Microsoft YaHei",
@@ -219,8 +329,6 @@ export default {
         72,
         96
       ],
-      fontSize: "",
-      fontFamily: "",
       strokeWidthList: [
         {
           value: 1,
@@ -257,9 +365,19 @@ export default {
       ],
       vertexSelected: false,
       edgeSelected: false,
-      oldStyle:{
-        stroke: '',
-        strokewidth: ''
+      currentshape: "",
+      currentShapeStyle: {
+        fontSize: "16",
+        fontFamily: "",
+        fontColor: "#ffffff",
+        fillColor: "#ffffff",
+        strokeColor: "#ffffff",
+        imgBorderColor: "#ffffff",
+        strokeWidth: 0,
+      },
+      oldStyle: {
+        strokeColor: '',
+        imgBorderColor: ''
       }
     };
   },
@@ -268,36 +386,87 @@ export default {
   },
   mounted() {},
   methods: {
-    addText(evt) {
-      this.$bus.$emit("createText", evt);
+    insertText(evt) {
+      this.$Editor.insertText(evt);
     },
     updateToolBarStates(state, vertexSelected, edgeSelected) {
-      // 获取当前选择元素的样式，更新ToolBar
-      this.vertexSelected = vertexSelected;
-      this.edgeSelected = edgeSelected;
       if (state) {
-        //选中
         const { shape, text, style } = state;
-        const { fill, stroke, strokewidth } = shape;
-        this.fillColor = fill || "#fff";
-        this.borderColor = stroke || "#000";
-        this.oldStyle.stroke = stroke;
-        this.oldStyle.strokewidth = strokewidth;
+        // 获取当前mxCell的类型，image(图片),label(文本框和图形),connector(线)
 
-        const { fontColor, fontFamily, fontSize } = style;
-        this.fontColor = fontColor || "#000";
-        this.fontFamily = fontFamily || "Arial";
-        this.fontSize = fontSize || "16";
+        const { fill, stroke, strokewidth } = shape;
+        const { fontColor, fontFamily, fontSize, imageBorder } = style;
+
+        // 获取选中mxCell的样式
+        this.currentshape = style.shape;
+        if (style.shape == "label") {
+          this.currentShapeStyle.strokeColor = stroke || "#fff" ;
+          this.oldStyle.strokeColor = stroke ;
+        } else if (style.shape == "image") {
+          this.oldStyle.imgBorderColor = imageBorder;
+        } 
+
+        this.currentShapeStyle.fillColor = fill || "#fff";
+        this.currentShapeStyle.strokeWidth = strokewidth
+
+        this.currentShapeStyle.fontColor = fontColor || "#fff";
+        this.currentShapeStyle.fontFamily = fontFamily || "Arial";
+        this.currentShapeStyle.fontSize = fontSize || "16";
 
         // TODO 粗体，斜体，下划线，样式读取
       } else {
         //未选中
+        this.currentshape = "";
       }
       console.log(state);
     },
     changeStyle(style, value) {
-      console.log(style, value);
-      this.$Editor.changeStyle(style, value);
+      //对于设置了边框宽度而未设置边框颜色，需要给一个默认值
+      if(this.currentshape == 'label' && style == 'strokeWidth' && !this.oldStyle.strokeColor) {
+        this.$Editor.changeStyle(['strokeColor','strokeWidth'], ['#000000', value]);
+      } else if (this.currentshape == 'image' && style == 'strokeWidth' && !this.oldStyle.imgBorderColor) {
+        this.$Editor.changeStyle(['imageBorder','strokeWidth'], ['#000000', value]);
+      } else if (style == 'strokeWidth' && value == 'none'){
+        this.$Editor.changeStyle('strokeColor', value);
+      } else {
+        this.$Editor.changeStyle(style, value);
+      }
+    },
+    toggleFontStyle(e, style) {
+      e.stopPropagation();
+      e.preventDefault();
+      this.$Editor.toggleFontStyle(style);
+    },
+    insertImage() {
+      this.$prompt("请输入图片链接", "插入图片", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputPattern: /\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/,
+        inputErrorMessage: "图片链接"
+      })
+        .then(({ value }) => {
+          this.$Editor.insertImage(value);
+        })
+        .catch(() => {
+  
+        });
+    },
+    insertLine(evt) {
+      this.$Editor.insertLine(evt);
+    },
+    changeImage() {
+      this.$prompt("请输入图片链接", "更换图片", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputPattern: /\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/,
+        inputErrorMessage: "图片链接"
+      })
+      .then(({ value }) => {
+        this.$Editor.changeImage(value);
+      })
+      .catch(() => {
+
+      });
     }
   },
   components: {
@@ -362,6 +531,13 @@ export default {
         display: none;
       }
     }
+    .el-dropdown-link {
+      box-sizing: border-box;
+      display: inline-block;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
   }
   .toolbar-separator {
     border-left: 1px solid #dadce0;
@@ -401,6 +577,18 @@ export default {
 .el-popper-override {
   .el-select-dropdown__wrap {
     max-height: 1000px;
+  }
+}
+.el-dropdown-override {
+  .el-dropdown-menu__item {
+    font-size: 14px;
+    height: 34px;
+    line-height: 34px;
+    padding: 0 20px;
+    &:hover {
+      background-color: #f5f7fa;
+      color: #000;
+    }
   }
 }
 </style>

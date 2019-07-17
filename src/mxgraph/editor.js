@@ -1,5 +1,13 @@
 import * as mxgraph from 'mxgraph'
-const { mxCell, mxEventObject, mxGeometry, mxEvent, mxUtils } = mxgraph()
+const {
+  mxCell,
+  mxEventObject,
+  mxGeometry,
+  mxEvent,
+  mxUtils,
+  mxConstants,
+  mxPoint
+} = mxgraph()
 
 function Editor(bus) {
   this.$bus = bus
@@ -37,18 +45,150 @@ Editor.prototype.switchGraph = function(id) {
 /**
  * 创建文本框
  */
-Editor.prototype.createText = function(evt) {
-  let style =
+Editor.prototype.insertText = function(evt) {
+  var style =
     'text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000'
-  let width = 100
-  let height = 30
-  let value = '双击输入文字'
-  let title = 'Text'
-  let showLabel = null
-  let allowCellsInserted = true
+  var width = 150
+  var height = 60
+  var value = '双击输入文字'
+  var title = 'Text'
+  var showLabel = null
+  var allowCellsInserted = true
 
-  this.createShap(
-    this.activeGraph,
+  this.createShape(
+    style,
+    width,
+    height,
+    value,
+    title,
+    showLabel,
+    allowCellsInserted,
+    evt
+  )
+}
+
+/**
+ * 插入图片
+ */
+Editor.prototype.insertImage = function(imgUrl) {
+  var graph = this.activeGraph
+  var img = new Image()
+
+  img.onload = function() {
+    var w = img.width
+    var h = img.height
+
+    if (imgUrl != null && (imgUrl.length > 0 || cells.length > 0)) {
+      var select = null
+      graph.getModel().beginUpdate()
+      try {
+        var pt = graph.getFreeInsertPoint()
+        var cells = [
+          graph.insertVertex(
+            graph.getDefaultParent(),
+            null,
+            '',
+            pt.x,
+            pt.y,
+            w,
+            h,
+            'shape=image;imageAspect=0;aspect=aspect;verticalLabelPosition=bottom;verticalAlign=top;'
+          )
+        ]
+        select = cells
+        graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select))
+        // }
+
+        graph.setCellStyles(
+          mxConstants.STYLE_IMAGE,
+          imgUrl.length > 0 ? imgUrl : null,
+          cells
+        )
+      } finally {
+        graph.getModel().endUpdate()
+      }
+
+      if (select != null) {
+        graph.setSelectionCells(select)
+      }
+    }
+  }
+
+  img.src = imgUrl
+}
+
+/**
+ * 更换图片
+ */
+Editor.prototype.changeImage = function(imgUrl) {
+  var graph = this.activeGraph
+  var img = new Image()
+
+  img.onload = function() {
+    var w = img.width
+    var h = img.height
+
+      var cells = graph.getSelectionCells()
+      if (imgUrl != null && (imgUrl.length > 0 || cells.length > 0)) {
+        var select = null
+        graph.getModel().beginUpdate()
+        try {
+
+          graph.setCellStyles(
+            mxConstants.STYLE_IMAGE,
+            imgUrl.length > 0 ? imgUrl : null,
+            cells
+          )
+
+          // Sets shape only if not already shape with image (label or image)
+          var state = graph.view.getState(cells[0])
+          var style = state != null ? state.style : graph.getCellStyle(cells[0])
+
+          if (
+            style[mxConstants.STYLE_SHAPE] != 'image' &&
+            style[mxConstants.STYLE_SHAPE] != 'label'
+          ) {
+            graph.setCellStyles(mxConstants.STYLE_SHAPE, 'image', cells)
+          } else if (imgUrl.length == 0) {
+            graph.setCellStyles(mxConstants.STYLE_SHAPE, null, cells)
+          }
+
+          if (graph.getSelectionCount() == 1) {
+            if (w != null && h != null) {
+              var cell = cells[0]
+              var geo = graph.getModel().getGeometry(cell)
+
+              if (geo != null) {
+                geo = geo.clone()
+                geo.width = w
+                geo.height = h
+                graph.getModel().setGeometry(cell, geo)
+              }
+            }
+          }
+        } finally {
+          graph.getModel().endUpdate()
+        }
+
+      }
+    // }
+  }
+
+  img.src = imgUrl
+}
+
+/**
+ * 插入线条
+ */
+Editor.prototype.insertLine = function(evt) {
+  var style = 'endArrow=none;html=1;'
+  var width = 150
+  var height = 0
+  var value = ''
+  var title = 'Line'
+  var showLabel = null
+  var allowCellsInserted = true
+  this.createEdge(
     style,
     width,
     height,
@@ -63,8 +203,7 @@ Editor.prototype.createText = function(evt) {
 /**
  * 创建图形
  */
-Editor.prototype.createShap = function(
-  graph,
+Editor.prototype.createShape = function(
   style,
   width,
   height,
@@ -74,6 +213,7 @@ Editor.prototype.createShap = function(
   allowCellsInserted,
   evt
 ) {
+  var graph = this.activeGraph
   var cells = [
     new mxCell(
       value != null ? value : '',
@@ -90,6 +230,118 @@ Editor.prototype.createShap = function(
   var y = pt.y
 
   cells = graph.getImportableCells(cells)
+  if (cells.length > 0) {
+    graph.stopEditing()
+
+    // Holding alt while mouse is released ignores drop target
+    var validDropTarget =
+      target != null && !mxEvent.isAltDown(evt)
+        ? graph.isValidDropTarget(target, cells, evt)
+        : false
+    var select = null
+
+    // if (target != null && !validDropTarget) {
+    //   target = null;
+    // }
+    if (!graph.isCellLocked(target || graph.getDefaultParent())) {
+      graph.model.beginUpdate()
+      try {
+        x = Math.round(x)
+        y = Math.round(y)
+
+        // Splits the target edge or inserts into target group
+        if (allowSplit && graph.isSplitTarget(target, cells, evt)) {
+          var clones = graph.cloneCells(cells)
+          graph.splitEdge(
+            target,
+            clones,
+            null,
+            x - bounds.width / 2,
+            y - bounds.height / 2
+          )
+          select = clones
+        } else if (cells.length > 0) {
+          select = graph.importCells(cells, x, y, target)
+        }
+        // Executes parent layout hooks for position/order
+        if (graph.layoutManager != null) {
+          var layout = graph.layoutManager.getLayout(target)
+
+          if (layout != null) {
+            var s = graph.view.scale
+            var tr = graph.view.translate
+            var tx = (x + tr.x) * s
+            var ty = (y + tr.y) * s
+
+            for (var i = 0; i < select.length; i++) {
+              layout.moveCell(select[i], tx, ty)
+            }
+          }
+        }
+
+        if (allowCellsInserted && (evt == null || !mxEvent.isShiftDown(evt))) {
+          graph.fireEvent(new mxEventObject('cellsInserted', 'cells', select))
+        }
+      } catch (e) {
+        // TODO error handler
+        console.log(e)
+      } finally {
+        graph.model.endUpdate()
+      }
+
+      if (select != null && select.length > 0) {
+        // graph.scrollCellToVisible(select[0]);
+        graph.setSelectionCells(select)
+      }
+
+      if (
+        graph.editAfterInsert &&
+        evt != null &&
+        mxEvent.isMouseEvent(evt) &&
+        select != null &&
+        select.length == 1
+      ) {
+        window.setTimeout(function() {
+          graph.startEditing(select[0])
+        }, 0)
+      }
+    }
+
+    // if (this.editorUi.hoverIcons != null) {
+    //   this.editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
+    // }
+  }
+}
+
+Editor.prototype.createEdge = function(
+  style,
+  width,
+  height,
+  value,
+  title,
+  showLabel,
+  allowCellsInserted,
+  evt
+) {
+  var graph = this.activeGraph
+  var cell = new mxCell(
+    value != null ? value : '',
+    new mxGeometry(0, 0, width, height),
+    style
+  )
+  cell.geometry.setTerminalPoint(new mxPoint(0, height), true)
+  cell.geometry.setTerminalPoint(new mxPoint(width, 0), false)
+  cell.geometry.relative = true
+  cell.edge = true
+
+  var target = null
+  var allowSplit = false
+
+  var pt = graph.getFreeInsertPoint()
+  var x = pt.x
+  var y = pt.y
+
+  var cells = graph.getImportableCells([cell])
   if (cells.length > 0) {
     graph.stopEditing()
 
@@ -362,29 +614,25 @@ Editor.prototype.insertHandler = function(cells, asText) {
  */
 Editor.prototype.changeStyle = function(key, value) {
   var graph = this.activeGraph
+  if (!Array.isArray(key)) {
+    key = [key]
+    value = [value]
+  }
+
   graph.stopEditing(false)
-
-
-
   graph.getModel().beginUpdate()
   try {
-    // for (var i = 0; i < keys.length; i++)
-    // {
-    //   graph.setCellStyles(keys[i], values[i]);
-    // }
+    for (var i = 0; i < key.length; i++) {
+      graph.setCellStyles(key[i], value[i])
+    }
 
-    // if (post != null)
-    // {
-    //   post();
-    // }
-    graph.setCellStyles(key, value)
     graph.fireEvent(
       new mxEventObject(
         'styleChanged',
         'keys',
-        [key],
+        key,
         'values',
-        [value],
+        value,
         'cells',
         graph.getSelectionCells()
       )
@@ -395,7 +643,64 @@ Editor.prototype.changeStyle = function(key, value) {
 }
 
 /**
- * 样式改变了后
+ * 切换字体样式，粗体，斜体，下划线
+ */
+Editor.prototype.toggleFontStyle = function(style) {
+  var graph = this.activeGraph
+  var fontStyle = {
+    bold: 1,
+    italic: 2,
+    underline: 4
+  }
+  if (graph.cellEditor.isContentEditing()) {
+    document.execCommand(style, true, null)
+  } else {
+    graph.stopEditing(false)
+
+    graph.getModel().beginUpdate()
+    try {
+      graph.toggleCellStyleFlags(mxConstants.STYLE_FONTSTYLE, fontStyle[style])
+
+      // Removes bold and italic tags and CSS styles inside labels
+      if ((fontStyle[style] & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD) {
+        graph.updateLabelElements(graph.getSelectionCells(), function(elt) {
+          elt.style.fontWeight = null
+
+          if (elt.nodeName == 'B') {
+            graph.replaceElement(elt)
+          }
+        })
+      } else if (
+        (fontStyle[style] & mxConstants.FONT_ITALIC) ==
+        mxConstants.FONT_ITALIC
+      ) {
+        graph.updateLabelElements(graph.getSelectionCells(), function(elt) {
+          elt.style.fontStyle = null
+
+          if (elt.nodeName == 'I') {
+            graph.replaceElement(elt)
+          }
+        })
+      } else if (
+        (fontStyle[style] & mxConstants.FONT_UNDERLINE) ==
+        mxConstants.FONT_UNDERLINE
+      ) {
+        graph.updateLabelElements(graph.getSelectionCells(), function(elt) {
+          elt.style.textDecoration = null
+
+          if (elt.nodeName == 'U') {
+            graph.replaceElement(elt)
+          }
+        })
+      }
+    } finally {
+      graph.getModel().endUpdate()
+    }
+  }
+}
+
+/**
+ * 样式改变了后执行
  */
 Editor.prototype.styleChanged = function(evt) {
   var cells = evt.getProperty('cells')
@@ -463,4 +768,5 @@ Editor.prototype.styleChanged = function(evt) {
     }
   }
 }
+
 export default Editor

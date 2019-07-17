@@ -36,7 +36,9 @@ const {
 	mxValueChange,
 	mxPolyline,
 	mxStylesheet,
-	mxDictionary 
+	mxDictionary,
+	mxImageShape,
+	mxElbowEdgeHandler
 } = mxgraph();
 
 /** 
@@ -5250,7 +5252,7 @@ if (typeof mxVertexHandler != 'undefined')
 		{
 			var span = elt.ownerDocument.createElement((tagName != null) ? tagName : 'span');
 			var attributes = Array.prototype.slice.call(elt.attributes);
-			
+			var attr = null;
 			while (attr = attributes.pop())
 			{
 				span.setAttribute(attr.nodeName, attr.nodeValue);
@@ -5577,7 +5579,7 @@ if (typeof mxVertexHandler != 'undefined')
 		};
 		
 		/**
-		 * 
+		 *  插入cell的初始位置
 		 */
 		Graph.prototype.getFreeInsertPoint = function()
 		{
@@ -5591,7 +5593,8 @@ if (typeof mxVertexHandler != 'undefined')
 			var y = this.snap(Math.round(Math.max(pt.y, (bds.y + bds.height) / view.scale - view.translate.y +
 				2 * this.gridSize)));
 			
-			return new mxPoint(x, y);
+			// return new mxPoint(x, y);
+			return new mxPoint(50, 50);
 		};
 		
 		/**
