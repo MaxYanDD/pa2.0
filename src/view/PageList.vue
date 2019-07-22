@@ -2,11 +2,11 @@
     <div class="page-list">
         <div class="shadow"></div>
         <div
-                :key="page.id"
-                :ref="page.id"
-                class="page-item"
-                v-for="page in pages"
-                v-show="page.id == activeId"
+            :key="page.id"
+            :ref="page.id"
+            class="page-item"
+            v-for="page in pages"
+            v-show="page.id == activeId"
         />
     </div>
 </template>

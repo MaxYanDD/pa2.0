@@ -300,7 +300,7 @@ Editor.prototype.createShape = function (
                 evt != null &&
                 mxEvent.isMouseEvent(evt) &&
                 select != null &&
-                select.length == 1
+                select.length === 1
             ) {
                 window.setTimeout(function () {
                     graph.startEditing(select[0])
@@ -312,7 +312,8 @@ Editor.prototype.createShape = function (
         //   this.editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
         // }
     }
-}
+};
+
 
 Editor.prototype.createEdge = function (
     style,
@@ -324,27 +325,27 @@ Editor.prototype.createEdge = function (
     allowCellsInserted,
     evt
 ) {
-    var graph = this.activeGraph
+    var graph = this.activeGraph;
     var cell = new mxCell(
         value != null ? value : '',
         new mxGeometry(0, 0, width, height),
         style
-    )
-    cell.geometry.setTerminalPoint(new mxPoint(0, height), true)
-    cell.geometry.setTerminalPoint(new mxPoint(width, 0), false)
-    cell.geometry.relative = true
-    cell.edge = true
+    );
+    cell.geometry.setTerminalPoint(new mxPoint(0, height), true);
+    cell.geometry.setTerminalPoint(new mxPoint(width, 0), false);
+    cell.geometry.relative = true;
+    cell.edge = true;
 
-    var target = null
-    var allowSplit = false
+    var target = null;
+    var allowSplit = false;
 
-    var pt = graph.getFreeInsertPoint()
-    var x = pt.x
-    var y = pt.y
+    var pt = graph.getFreeInsertPoint();
+    var x = pt.x;
+    var y = pt.y;
 
-    var cells = graph.getImportableCells([cell])
+    var cells = graph.getImportableCells([cell]);
     if (cells.length > 0) {
-        graph.stopEditing()
+        graph.stopEditing();
 
         // Holding alt while mouse is released ignores drop target
         var validDropTarget =
@@ -357,14 +358,14 @@ Editor.prototype.createEdge = function (
         //   target = null;
         // }
         if (!graph.isCellLocked(target || graph.getDefaultParent())) {
-            graph.model.beginUpdate()
+            graph.model.beginUpdate();
             try {
-                x = Math.round(x)
-                y = Math.round(y)
+                x = Math.round(x);
+                y = Math.round(y);
 
                 // Splits the target edge or inserts into target group
                 if (allowSplit && graph.isSplitTarget(target, cells, evt)) {
-                    var clones = graph.cloneCells(cells)
+                    var clones = graph.cloneCells(cells);
                     graph.splitEdge(
                         target,
                         clones,
@@ -381,10 +382,10 @@ Editor.prototype.createEdge = function (
                     var layout = graph.layoutManager.getLayout(target)
 
                     if (layout != null) {
-                        var s = graph.view.scale
-                        var tr = graph.view.translate
-                        var tx = (x + tr.x) * s
-                        var ty = (y + tr.y) * s
+                        var s = graph.view.scale;
+                        var tr = graph.view.translate;
+                        var tx = (x + tr.x) * s;
+                        var ty = (y + tr.y) * s;
 
                         for (var i = 0; i < select.length; i++) {
                             layout.moveCell(select[i], tx, ty)
