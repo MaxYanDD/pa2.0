@@ -224,7 +224,7 @@
           <i class="iconfont icon-pen"></i>
           <div class="pickerbox">
             <el-color-picker
-              v-model="currentShapeStyle.imgBorderColor"
+              v-model="currentShapeStyle.lineColor"
               :show-alpha="true"
               @change="Color => changeStyle('strokeColor',Color)"
             ></el-color-picker>
@@ -374,6 +374,7 @@ export default {
         strokeColor: "#ffffff",
         imgBorderColor: "#ffffff",
         strokeWidth: 0,
+        lineColor: '#ffffff'
       },
       oldStyle: {
         strokeColor: '',
@@ -391,9 +392,8 @@ export default {
     },
     updateToolBarStates(state, vertexSelected, edgeSelected) {
       if (state) {
-        const { shape, text, style } = state;
         // 获取当前mxCell的类型，image(图片),label(文本框和图形),connector(线)
-
+        const { shape, text, style } = state;
         const { fill, stroke, strokewidth } = shape;
         const { fontColor, fontFamily, fontSize, imageBorder } = style;
 
@@ -404,7 +404,9 @@ export default {
           this.oldStyle.strokeColor = stroke ;
         } else if (style.shape == "image") {
           this.oldStyle.imgBorderColor = imageBorder;
-        } 
+        } else if (style.shape == "connector") {
+          this.currentShapeStyle.lineColor = stroke;
+        }
 
         this.currentShapeStyle.fillColor = fill || "#fff";
         this.currentShapeStyle.strokeWidth = strokewidth
@@ -412,8 +414,6 @@ export default {
         this.currentShapeStyle.fontColor = fontColor || "#fff";
         this.currentShapeStyle.fontFamily = fontFamily || "Arial";
         this.currentShapeStyle.fontSize = fontSize || "16";
-
-        // TODO 粗体，斜体，下划线，样式读取
       } else {
         //未选中
         this.currentshape = "";

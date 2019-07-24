@@ -119,4 +119,13 @@ li {
   overflow: auto;
   background-color: #f5f5f5;
 }
+
+.mxRubberband {
+    position: absolute;
+    overflow: hidden;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #0000FF;
+    background: #0077FF;
+}
 </style>
