@@ -10,6 +10,7 @@ const {
     mxPoint
 } = mxgraph();
 
+
 function Editor(bus) {
     this.$bus = bus
 }
@@ -51,7 +52,7 @@ Editor.prototype.insertText = function (evt) {
         'text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000'
     var width = 150;
     var height = 60;
-    var value = '双击输入文字';
+    var value = '双击可输入文本';
     var title = 'Text';
     var showLabel = null;
     var allowCellsInserted = true;
@@ -702,6 +703,40 @@ Editor.prototype.toggleFontStyle = function (style) {
 }
 
 /**
+ * 设置行高
+ */
+Editor.prototype.setLineHeight = function (value) {
+    var graph = this.activeGraph;
+    var selectedElement = graph.getSelectedElement();
+    var node = selectedElement;
+    var cells = graph.getSelectionCells();
+    console.log(graph.cellEditor);
+
+    while (node != null && node.nodeType != 1)
+    {
+        node = node.parentNode;
+    }
+    
+    if (node != null && node == graph.cellEditor.textarea && graph.cellEditor.textarea.firstChild != null)
+    {
+        if (graph.cellEditor.textarea.firstChild.nodeName != 'P')
+        {
+            graph.cellEditor.textarea.innerHTML = '<p>' + graph.cellEditor.textarea.innerHTML + '</p>';
+        }
+        
+        node = graph.cellEditor.textarea.firstChild;
+    }
+    
+    if (node != null && node != graph.cellEditor.textarea && graph.cellEditor.textarea.contains(node))
+    {
+        node.style.lineHeight = value ;
+    }
+    
+    
+}
+
+
+/**
  * 样式改变了后执行
  */
 Editor.prototype.styleChanged = function (evt) {
@@ -771,4 +806,8 @@ Editor.prototype.styleChanged = function (evt) {
     }
 }
 
+
+
 export default Editor
+
+

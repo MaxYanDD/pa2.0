@@ -330,10 +330,10 @@ let Graph = function (container, model, renderHint, stylesheet, themes) {
     // All code below not available and not needed in embed mode
     if (typeof mxVertexHandler !== 'undefined') {
         this.setConnectable(false);
-        this.setDropEnabled(true);
+        this.setDropEnabled(false);
         this.setPanning(true);
         this.setTooltips(true);
-        this.setAllowLoops(true);
+        this.setAllowLoops(false);
         this.allowAutoPanning = false;
         this.resetEdgesOnConnect = false;
         this.constrainChildren = false;
@@ -357,7 +357,6 @@ let Graph = function (container, model, renderHint, stylesheet, themes) {
         if (stylesheet == null) {
             this.loadStylesheet();
         }
-        console.log(this.stylesheet);
         // Adds page centers to the guides for moving cells
         var graphHandlerGetGuideStates = this.graphHandler.getGuideStates;
         this.graphHandler.getGuideStates = function () {
@@ -964,12 +963,12 @@ Graph.prototype.lightbox = false;
 /**
  *
  */
-Graph.prototype.defaultPageBackgroundColor = '#ffffff';
+Graph.prototype.defaultPageBackgroundColor = '#000';
 
 /**
  *
  */
-Graph.prototype.defaultPageBorderColor = '#ffffff';
+Graph.prototype.defaultPageBorderColor = '#000';
 
 /**
  * Specifies the size of the size for "tiles" to be used for a graph with

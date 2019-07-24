@@ -1,7 +1,7 @@
 <template>
-  <div class="toolsbar" onmousedown="event.preventDefault();">
+  <div class="toolsbar"  onclick="event.preventDefault();">
     <ToolTip content="保存" class="tool-item">
-      <a>
+      <a >
         <i class="iconfont icon-baocun"></i>
       </a>
     </ToolTip>
@@ -58,7 +58,7 @@
     <div class="toolbar-separator"></div>
 
     <!-- 文本框和多边形可用的编辑选项 -->
-    <div v-show="currentshape == 'label'" class="modifier" onmousedown="event.preventDefault();">
+    <div v-show="currentshape == 'label'" class="modifier">
       <ToolTip class="tool-item" content="填充颜色">
         <a>
           <i class="iconfont icon-tianchong"></i>
@@ -139,7 +139,7 @@
         </el-select>
       </ToolTip>
       <div class="toolbar-separator"></div>
-      <ToolTip class="tool-item" content="粗体">
+      <ToolTip class="tool-item" content="粗体" >
         <a onmousedown="event.preventDefault();" @click="e => toggleFontStyle(e,'bold')">
           <i class="iconfont icon-font-weight"></i>
         </a>
@@ -165,6 +165,57 @@
             ></el-color-picker>
           </div>
         </a>
+      </ToolTip>
+      <div class="toolbar-separator"></div>
+      <ToolTip class="tool-item" content="左对齐">
+        <a @click="changeStyle('align','left')">
+          <i class="iconfont icon-duiqizuo"></i>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="水平居中">
+        <a onmousedown="event.preventDefault();" @click="changeStyle('align','center')">
+          <i class="iconfont icon-duiqichuizhi"></i>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="右对齐">
+        <a onmousedown="event.preventDefault();" @click="changeStyle('align','right')">
+          <i class="iconfont icon-duiqiyou"></i>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="上对齐">
+        <a onmousedown="event.preventDefault();" @click="changeStyle('verticalAlign','top')">
+          <i class="iconfont icon-top"></i>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="垂直居中对齐">
+        <a onmousedown="event.preventDefault();" @click="changeStyle('verticalAlign','middle')">
+          <i class="iconfont icon-duiqishuiping"></i>
+        </a>
+      </ToolTip>
+      <ToolTip class="tool-item" content="下对齐">
+        <a onmousedown="event.preventDefault();" @click="changeStyle('verticalAlign','bottom')">
+          <i class="iconfont icon-duiqi_xiangshang"></i>
+        </a>
+      </ToolTip>
+      <div class="toolbar-separator"></div>
+      <ToolTip class="tool-item" content="行间距">
+        <el-dropdown
+          trigger="click"
+          placement="bottom-start"
+          size="mini"
+          @command="cmd => changeStyle('lineHeight',cmd)"
+        >
+          <span class="el-dropdown-link">
+            <i class="iconfont icon-huaban"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown" class="el-dropdown-override">
+            <el-dropdown-item
+              v-for="item in lineHeightList"
+              :command="item.value"
+              :key="item.value"
+            >{{item.label}}</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
       </ToolTip>
     </div>
     <!-- 图片可用的编辑选项 -->
@@ -269,9 +320,9 @@
   </div>
 </template>
 <script>
-import * as mxgraph from "mxgraph";
-import ToolTip from "../components/ToolTip";
-import store from "../store";
+import * as mxgraph from 'mxgraph';
+import ToolTip from '../components/ToolTip';
+import store from '../store';
 
 const { mxConstatns } = mxgraph();
 export default {
@@ -279,100 +330,117 @@ export default {
     return {
       fontFamilyList: [
         {
-          value: "Microsoft YaHei",
-          label: "微软雅黑"
+          value: 'Microsoft YaHei',
+          label: '微软雅黑'
         },
         {
-          value: "SimSun",
-          label: "宋体"
+          value: 'SimSun',
+          label: '宋体'
         },
         {
-          value: "KaiTi",
-          label: "楷体"
+          value: 'KaiTi',
+          label: '楷体'
         },
         {
-          value: "LiSu",
-          label: "隶书"
+          value: 'LiSu',
+          label: '隶书'
         },
         {
-          value: "YouYuan",
-          label: "幼圆"
+          value: 'YouYuan',
+          label: '幼圆'
         },
         {
-          value: "Impact",
-          label: "IMPACT"
+          value: 'Impact',
+          label: 'IMPACT'
         },
         {
-          value: "Arial",
-          label: "Arial"
+          value: 'Arial',
+          label: 'Arial'
         },
         {
-          value: "Verdana",
-          label: "Verdana"
+          value: 'Verdana',
+          label: 'Verdana'
         }
       ],
-      fontSizeList: [
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        14,
-        18,
-        24,
-        30,
-        36,
-        48,
-        60,
-        72,
-        96
-      ],
+      fontSizeList: [6, 7, 8, 9, 10, 11, 12, 14, 18, 24, 30, 36, 48, 60, 72, 96],
       strokeWidthList: [
         {
           value: 1,
-          label: "1px"
+          label: '1px'
         },
         {
           value: 2,
-          label: "2px"
+          label: '2px'
         },
         {
           value: 3,
-          label: "3px"
+          label: '3px'
         },
         {
           value: 4,
-          label: "4px"
+          label: '4px'
         },
         {
           value: 8,
-          label: "8px"
+          label: '8px'
         },
         {
           value: 12,
-          label: "12px"
+          label: '12px'
         },
         {
           value: 16,
-          label: "16px"
+          label: '16px'
         },
         {
           value: 24,
-          label: "24px"
+          label: '24px'
+        }
+      ],
+      lineHeightList: [
+        {
+          value: 1,
+          label: '1.0'
+        },
+        {
+          value: 1.2,
+          label: '1.2'
+        },
+        {
+          value: 1.4,
+          label: '1.4'
+        },
+        {
+          value: 1.5,
+          label: '1.5'
+        },
+        {
+          value: 1.6,
+          label: '1.6'
+        },
+        {
+          value: 1.8,
+          label: '1.8'
+        },
+        {
+          value: 2.0,
+          label: '2.0'
+        },
+        {
+          value: 3.0,
+          label: '3.0'
         }
       ],
       vertexSelected: false,
       edgeSelected: false,
-      currentshape: "",
+      currentshape: '',
       currentShapeStyle: {
-        fontSize: "16",
-        fontFamily: "",
-        fontColor: "#ffffff",
-        fillColor: "#ffffff",
-        strokeColor: "#ffffff",
-        imgBorderColor: "#ffffff",
+        fontSize: '16',
+        fontFamily: '',
+        fontColor: '#ffffff',
+        fillColor: '#ffffff',
+        strokeColor: '#ffffff',
+        imgBorderColor: '#ffffff',
         strokeWidth: 0,
         lineColor: '#ffffff'
       },
@@ -383,7 +451,7 @@ export default {
     };
   },
   created() {
-    this.$bus.$on("updateToolBarStates", this.updateToolBarStates);
+    this.$bus.$on('updateToolBarStates', this.updateToolBarStates);
   },
   mounted() {},
   methods: {
@@ -391,82 +459,96 @@ export default {
       this.$Editor.insertText(evt);
     },
     updateToolBarStates(state, vertexSelected, edgeSelected) {
-      if (state) {
-        // 获取当前mxCell的类型，image(图片),label(文本框和图形),connector(线)
-        const { shape, text, style } = state;
-        const { fill, stroke, strokewidth } = shape;
-        const { fontColor, fontFamily, fontSize, imageBorder } = style;
-
-        // 获取选中mxCell的样式
-        this.currentshape = style.shape;
-        if (style.shape == "label") {
-          this.currentShapeStyle.strokeColor = stroke || "#fff" ;
-          this.oldStyle.strokeColor = stroke ;
-        } else if (style.shape == "image") {
-          this.oldStyle.imgBorderColor = imageBorder;
-        } else if (style.shape == "connector") {
-          this.currentShapeStyle.lineColor = stroke;
-        }
-
-        this.currentShapeStyle.fillColor = fill || "#fff";
-        this.currentShapeStyle.strokeWidth = strokewidth
-
-        this.currentShapeStyle.fontColor = fontColor || "#fff";
-        this.currentShapeStyle.fontFamily = fontFamily || "Arial";
-        this.currentShapeStyle.fontSize = fontSize || "16";
-      } else {
-        //未选中
-        this.currentshape = "";
+      // 获取当前mxCell的类型，image(图片),label(文本框和图形),connector(线)
+      // TODO 见Format.js 3441行
+      if (!state) {
+        this.currentshape = '';
+        return;
       }
+
+      const { shape, text, style } = state;
+      const { fill, stroke, strokewidth } = shape;
+      const { fontColor, fontFamily, fontSize, imageBorder, fontStyle } = style;
+
+      // 获取选中mxCell的样式
+      this.currentshape = style.shape;
+      if (style.shape == 'label') {
+        this.currentShapeStyle.strokeColor = stroke || '#fff';
+        this.oldStyle.strokeColor = stroke;
+      } else if (style.shape == 'image') {
+        this.oldStyle.imgBorderColor = imageBorder;
+      } else if (style.shape == 'connector') {
+        this.currentShapeStyle.lineColor = stroke;
+      }
+
+      this.currentShapeStyle.fillColor = fill || '#fff';
+      this.currentShapeStyle.strokeWidth = strokewidth;
+
+      this.currentShapeStyle.fontColor = fontColor || '#fff';
+      this.currentShapeStyle.fontFamily = fontFamily || 'Arial';
+      this.currentShapeStyle.fontSize = fontSize || '16';
+
       console.log(state);
     },
+
     changeStyle(style, value) {
-      //对于设置了边框宽度而未设置边框颜色，需要给一个默认值
-      if(this.currentshape == 'label' && style == 'strokeWidth' && !this.oldStyle.strokeColor) {
-        this.$Editor.changeStyle(['strokeColor','strokeWidth'], ['#000000', value]);
-      } else if (this.currentshape == 'image' && style == 'strokeWidth' && !this.oldStyle.imgBorderColor) {
-        this.$Editor.changeStyle(['imageBorder','strokeWidth'], ['#000000', value]);
-      } else if (style == 'strokeWidth' && value == 'none'){
-        this.$Editor.changeStyle('strokeColor', value);
-      } else {
-        this.$Editor.changeStyle(style, value);
+
+      // 设置边框宽度，给定一个默认边框颜色
+      if (this.currentshape == 'label' && style == 'strokeWidth' && !this.oldStyle.strokeColor) {
+        this.$Editor.changeStyle(['strokeColor', 'strokeWidth'], ['#000000', value]);
+        return;
       }
+
+      // 设置边框宽度，给定一个默认边框颜色
+      if (this.currentshape == 'image' && style == 'strokeWidth' && !this.oldStyle.imgBorderColor) {
+        this.$Editor.changeStyle(['imageBorder', 'strokeWidth'], ['#000000', value]);
+        return;
+      }
+
+      // 设置边框颜色，给定一个默认边框宽度
+      if (style == 'strokeWidth' && value == 'none') {
+        this.$Editor.changeStyle('strokeColor', value);
+        return;
+      }
+
+      if (style == 'lineHeight' && value) {
+        this.$Editor.setLineHeight(value)
+      }
+
+
+      this.$Editor.changeStyle(style, value);
     },
     toggleFontStyle(e, style) {
-      e.stopPropagation();
-      e.preventDefault();
+      // e.stopPropagation();
+      // e.preventDefault();
       this.$Editor.toggleFontStyle(style);
     },
     insertImage() {
-      this.$prompt("请输入图片链接", "插入图片", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+      this.$prompt('请输入图片链接', '插入图片', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
         inputPattern: /\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/,
-        inputErrorMessage: "图片链接"
+        inputErrorMessage: '图片链接'
       })
         .then(({ value }) => {
           this.$Editor.insertImage(value);
         })
-        .catch(() => {
-  
-        });
+        .catch(() => {});
     },
     insertLine(evt) {
       this.$Editor.insertLine(evt);
     },
     changeImage() {
-      this.$prompt("请输入图片链接", "更换图片", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+      this.$prompt('请输入图片链接', '更换图片', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
         inputPattern: /\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/,
-        inputErrorMessage: "图片链接"
+        inputErrorMessage: '图片链接'
       })
-      .then(({ value }) => {
-        this.$Editor.changeImage(value);
-      })
-      .catch(() => {
-
-      });
+        .then(({ value }) => {
+          this.$Editor.changeImage(value);
+        })
+        .catch(() => {});
     }
   },
   components: {
@@ -476,7 +558,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../assets/sass/theme.scss";
+@import '../assets/sass/theme.scss';
 .toolsbar {
   display: flex;
   align-items: center;

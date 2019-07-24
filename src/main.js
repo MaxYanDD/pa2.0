@@ -12,6 +12,7 @@ Vue.prototype.$bus = bus
 Vue.prototype.$Editor = new Editor(bus)
 Vue.config.productionTip = false
 
+
 // element-ui
 Vue.use(Dropdown);
 Vue.use(DropdownMenu);
