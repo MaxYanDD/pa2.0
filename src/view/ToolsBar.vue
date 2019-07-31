@@ -1,7 +1,7 @@
 <template>
-  <div class="toolsbar"  onclick="event.preventDefault();">
+  <div class="toolsbar"   @mousedown.stop.prevent>
     <ToolTip content="保存" class="tool-item">
-      <a >
+      <a>
         <i class="iconfont icon-baocun"></i>
       </a>
     </ToolTip>
@@ -12,23 +12,25 @@
     </ToolTip>
     <div class="toolbar-separator"></div>
     <ToolTip class="tool-item" content="撤销">
-      <a>
+      <a @click="(e) => this.$Editor.undo()">
         <i class="iconfont icon-undo"></i>
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="重做">
-      <a>
+      <a @click="() => this.$Editor.redo()">
         <i class="iconfont icon-redo"></i>
       </a>
     </ToolTip>
     <div class="toolbar-separator"></div>
-    <ToolTip class="tool-item" content="选择">
-      <a>
-        <i class="iconfont icon-shubiaozhizhen"></i>
+    <ToolTip class="tool-item" content="删除">
+      <a @click="(e) => this.$Editor.deletCells(e)">
+        <i class="iconfont icon-shanchu"></i>
       </a>
     </ToolTip>
+    <div class="toolbar-separator"></div>
+
     <ToolTip class="tool-item" content="文本框">
-      <a @click="insertText">
+      <a @click="() => this.$Editor.insertText()">
         <i class="iconfont icon-twenbenkuang"></i>
       </a>
     </ToolTip>
@@ -45,22 +47,69 @@
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="直线">
-      <a @click="insertLine">
+      <a @click="() => this.$Editor.insertLine()">
         <i class="iconfont icon-Line-Tool"></i>
         <!-- <i class="iconfont icon-arrow-drop-down"></i> -->
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="表格">
-      <a>
+      <a @click="() => this.dialogTableVisible = !this.dialogTableVisible">
         <i class="iconfont icon-table"></i>
       </a>
+      <!-- <el-popover placement="bottom" width="200" trigger="click">
+        <ul class="tool-create_table">
+          <li>
+            <p @click="createCostTable">一键生成灯光造价估算表</p>
+          </li>
+          <li class="divider"></li>
+          <li>
+            <p>一键生成照明能耗估算表</p>
+          </li>
+          <li class="divider"></li>
+          <li style="padding-top: 5px">
+            <span>行:</span>
+            <el-input-number
+              class="el-input-number-override"
+              v-model="tableRow"
+              controls-position="right"
+              :min="1"
+              :max="100"
+              size="mini"
+            ></el-input-number>
+            <span style="margin-left: 5px">列:</span>
+            <el-input-number
+              class="el-input-number-override"
+              v-model="tableCol"
+              controls-position="right"
+              :min="1"
+              :max="100"
+              size="mini"
+            ></el-input-number>
+            <el-button type="primary" class="el-btn-create_table" @click="createTable">插入表格</el-button>
+          </li>
+        </ul>
+        <span slot="reference" class="el-dropdown-link">
+          <i class="iconfont icon-table"></i>
+        </span>
+      </el-popover>-->
     </ToolTip>
+    <el-dialog
+      title="编辑表格"
+      :visible.sync="dialogTableVisible"
+      width="1000px"
+      :fullscreen="isfullscreen"
+      :append-to-body="true"
+      class="el-dialog-override"
+    >
+      <TableEditor />
+    </el-dialog>
+
     <div class="toolbar-separator"></div>
 
     <!-- 文本框和多边形可用的编辑选项 -->
     <div v-show="currentshape == 'label'" class="modifier">
       <ToolTip class="tool-item" content="填充颜色">
-        <a>
+        <a  @mousedown.stop>
           <i class="iconfont icon-tianchong"></i>
           <div class="pickerbox">
             <el-color-picker
@@ -72,7 +121,7 @@
         </a>
       </ToolTip>
       <ToolTip class="tool-item" content="边框颜色">
-        <a>
+        <a  @mousedown.stop>
           <i class="iconfont icon-pen"></i>
           <div class="pickerbox">
             <el-color-picker
@@ -139,23 +188,26 @@
         </el-select>
       </ToolTip>
       <div class="toolbar-separator"></div>
-      <ToolTip class="tool-item" content="粗体" >
-        <a onmousedown="event.preventDefault();" @click="e => toggleFontStyle(e,'bold')">
+      <ToolTip class="tool-item" content="粗体">
+        <a onmousedown="event.preventDefault();" @click="()=> this.$Editor.toggleFontStyle('bold')">
           <i class="iconfont icon-font-weight"></i>
         </a>
       </ToolTip>
       <ToolTip class="tool-item" content="斜体">
-        <a onmousedown="event.preventDefault();" @click="e => toggleFontStyle(e, 'italic')">
+        <a
+          onmousedown="event.preventDefault();"
+          @click="() => this.$Editor.toggleFontStyle('italic')"
+        >
           <i class="iconfont icon-Italic"></i>
         </a>
       </ToolTip>
       <ToolTip onmousedown="event.preventDefault();" class="tool-item" content="下划线">
-        <a @click="e => toggleFontStyle(e, 'underline')">
+        <a @click="() => this.$Editor.toggleFontStyle('underline')">
           <i class="iconfont icon-Underline"></i>
         </a>
       </ToolTip>
       <ToolTip class="tool-item" content="字体颜色">
-        <a>
+        <a onmousedown="event.preventDefault();">
           <i class="iconfont icon-zimua"></i>
           <div class="pickerbox">
             <el-color-picker
@@ -198,7 +250,7 @@
         </a>
       </ToolTip>
       <div class="toolbar-separator"></div>
-      <ToolTip class="tool-item" content="行间距">
+      <ToolTip class="tool-item" content="行间距(待开发)">
         <el-dropdown
           trigger="click"
           placement="bottom-start"
@@ -322,9 +374,9 @@
 <script>
 import * as mxgraph from 'mxgraph';
 import ToolTip from '../components/ToolTip';
+import TableEditor from './TableEditor';
 import store from '../store';
 
-const { mxConstatns } = mxgraph();
 export default {
   data() {
     return {
@@ -431,8 +483,10 @@ export default {
           label: '3.0'
         }
       ],
+      dialogTableVisible: false,
       vertexSelected: false,
       edgeSelected: false,
+      isfullscreen: false,
       currentshape: '',
       currentShapeStyle: {
         fontSize: '16',
@@ -455,11 +509,8 @@ export default {
   },
   mounted() {},
   methods: {
-    insertText(evt) {
-      this.$Editor.insertText(evt);
-    },
     updateToolBarStates(state, vertexSelected, edgeSelected) {
-      // 获取当前mxCell的类型，image(图片),label(文本框和图形),connector(线)
+      // 获取当前选中mxCell的类型，image(图片),label(文本框和图形),connector(线)
       // TODO 见Format.js 3441行
       if (!state) {
         this.currentshape = '';
@@ -490,9 +541,7 @@ export default {
 
       console.log(state);
     },
-
     changeStyle(style, value) {
-
       // 设置边框宽度，给定一个默认边框颜色
       if (this.currentshape == 'label' && style == 'strokeWidth' && !this.oldStyle.strokeColor) {
         this.$Editor.changeStyle(['strokeColor', 'strokeWidth'], ['#000000', value]);
@@ -512,9 +561,8 @@ export default {
       }
 
       if (style == 'lineHeight' && value) {
-        this.$Editor.setLineHeight(value)
+        this.$Editor.setLineHeight(value);
       }
-
 
       this.$Editor.changeStyle(style, value);
     },
@@ -524,6 +572,7 @@ export default {
       this.$Editor.toggleFontStyle(style);
     },
     insertImage() {
+      this.$Editor.keyHandler.setEnabled(false);
       this.$prompt('请输入图片链接', '插入图片', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -532,11 +581,11 @@ export default {
       })
         .then(({ value }) => {
           this.$Editor.insertImage(value);
+          this.$Editor.keyHandler.setEnabled(true);
         })
-        .catch(() => {});
-    },
-    insertLine(evt) {
-      this.$Editor.insertLine(evt);
+        .catch(() => {
+          this.$Editor.keyHandler.setEnabled(true);
+        });
     },
     changeImage() {
       this.$prompt('请输入图片链接', '更换图片', {
@@ -549,16 +598,36 @@ export default {
           this.$Editor.changeImage(value);
         })
         .catch(() => {});
+    },
+    createCostTable() {
+      console.log('创建估价表');
+      return;
+      let style = 'text;html=1;strokeColor=#c0c0c0;fillColor=#ffffff;overflow=fill;rounded=0;';
+      let width = 200;
+      let height = 100;
+      let showLabel = null;
+      let allowCellsInserted = true;
+      let title = 'Table';
+
+      console.log(this.$Editor.activeGraph);
+      this.$Editor.createShape(style, width, height, value, title, showLabel, allowCellsInserted);
     }
   },
   components: {
-    ToolTip
+    ToolTip,
+    TableEditor
+  },
+  watch: {
+    dialogTableVisible(newValue) {
+      this.$Editor.keyHandler.setEnabled(!newValue);
+    }
   }
 };
 </script>
 
 <style lang="scss">
 @import '../assets/sass/theme.scss';
+
 .toolsbar {
   display: flex;
   align-items: center;
@@ -672,5 +741,38 @@ export default {
       color: #000;
     }
   }
+}
+.el-input-number-override {
+  display: inline-block;
+  width: 60px;
+  .el-input {
+    .el-input__inner {
+      padding: 0 30px 0 3px;
+    }
+  }
+  span {
+    width: 15px;
+  }
+}
+.el-dialog-override {
+  .el-dialog__body {
+    font-size: 16px;
+    .jexcel-override {
+      font-size: 16px;
+    }
+  }
+  .el-dialog__header {
+    border-bottom: 1px solid #cbcbcb;
+  }
+  .el-dialog__body {
+    padding-top: 0;
+  }
+}
+
+.jexcel-override {
+  user-select: none;
+}
+foreignObject table {
+  margin: -1px 0 0 -1px;
 }
 </style>

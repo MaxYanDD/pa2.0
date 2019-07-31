@@ -72565,10 +72565,9 @@
      */
     mxKeyHandler.prototype.isGraphEvent = function (evt) {
       var source = mxEvent.getSource(evt);
-
       // Accepts events from the target object or
       // in-place editing inside graph
-      if ((source == this.target || source.parentNode == this.target) ||
+      if ((source == this.target || true /*source.parentNode == this.target*/) ||
         (this.graph.cellEditor != null && this.graph.cellEditor.isEventSource(evt))) {
         return true;
       }
@@ -72591,6 +72590,7 @@
      */
     mxKeyHandler.prototype.keyDown = function (evt) {
       if (this.isEnabledForEvent(evt)) {
+        
         // Cancels the editing if escape is pressed
         if (evt.keyCode == 27 /* Escape */ ) {
           this.escape(evt);

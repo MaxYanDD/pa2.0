@@ -9,6 +9,7 @@
         <ThumbList :activeId="activeId" :pages="pages" />
       </div>
       <div class="content-right">
+
         <PageList :activeId="activeId" :pages="pages" />
       </div>
     </div>

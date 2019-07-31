@@ -873,6 +873,7 @@ Graph.prototype.getBgCenterTranslate = function () {
     let y = Math.floor((wrapHeight - this.pageFormat.height * this.pageScale) / 2);
     return {x, y}
 }
+
 /**
  *  设置background和阴影居中
  */
