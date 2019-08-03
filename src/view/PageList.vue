@@ -1,9 +1,8 @@
 <template>
   <div class="page-list" v-contextmenu:contextmenu @contextmenu="handleContextMenu">
-      
     <!-- 右键菜单 https://github.com/snokier/v-contextmenu/blob/master/docs/usage.md -->
     <v-contextmenu ref="contextmenu" class="menu-override">
-      <v-contextmenu-item  @click="(e) => this.$Editor.selectAll(e)">
+      <v-contextmenu-item @click="(e) => this.$Editor.selectAll(e)">
         全选
         <span>Ctrl+A</span>
       </v-contextmenu-item>
@@ -29,7 +28,7 @@
         置于顶层
         <span>Ctrl+up</span>
       </v-contextmenu-item>
-      <v-contextmenu-item v-show="!isSelectionEmpty"  @click="(e) => this.$Editor.toBack(e)">
+      <v-contextmenu-item v-show="!isSelectionEmpty" @click="(e) => this.$Editor.toBack(e)">
         移至底层
         <span>Ctrl+down</span>
       </v-contextmenu-item>
@@ -42,8 +41,8 @@
       :key="page.id"
       :ref="page.id"
       class="page-item"
-      v-for="page in pages"
-      v-show="page.id == activeId"
+      v-for="(page,index) in pages"
+      v-show="index == activeIndex"
     />
   </div>
 </template>
@@ -58,7 +57,7 @@ export default {
     pages: {
       type: Array
     },
-    activeId: {
+    activeIndex: {
       type: Number,
       default: 0
     }
@@ -75,10 +74,10 @@ export default {
   },
   methods: {
     createPage() {
-      return this.pages.map(page => new Graph(this.$refs[page.id][0], null, null, null, this.themes));
+      return this.pages.map(page => new Graph(page.id,page.xml, this.$refs[page.id][0], null, null, null, this.themes, this.$Editor));
     },
     handleContextMenu() {
-      this.isSelectionEmpty = this.$Editor.activeGraph.isSelectionEmpty();
+      this.isSelectionEmpty = this.$Editor.activeGraph.isSelectionEmpty(); // 右键菜单
 
       if (!this.$Editor.activeGraph.isSelectionEmpty()) {
         this.disableContentMenu = false;
@@ -86,10 +85,11 @@ export default {
         this.disableContentMenu = true;
         this.$refs.contextmenu.hide();
       }
-    }
+    },
+    newPage() {}
   },
   mounted() {
-    this.$Editor.init(this.createPage(), this.activeId);
+    this.$Editor.init(this.createPage(), this.activeIndex);
   }
 };
 </script>
@@ -115,6 +115,12 @@ export default {
     box-shadow: 0 1px 5px 1px rgba(60, 64, 67, 0.15);
     transform-origin: 0 0;
   }
+  .jexcel-override {
+    background-color: none;
+    tbody > tr > td:first-child {
+      background-color: transparent;
+    }
+  }
 }
 .menu-override {
   font-size: 16px;
@@ -127,8 +133,8 @@ export default {
     line-height: 1;
   }
   .v-contextmenu-item--hover {
-      color: #000 !important;
-      background-color: #eff8ff;
+    color: #000 !important;
+    background-color: #eff8ff;
   }
 }
 </style>

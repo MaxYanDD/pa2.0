@@ -7,7 +7,7 @@ import './assets/css/reset.css'
 import 'font-awesome/css/font-awesome.min.css'
 import Editor from './mxgraph/editor'
 import 'element-ui/lib/theme-chalk/index.css';
-import './utils/eventPrevent'
+import './utils/EventHandler'
 
 //https://github.com/snokier/v-contextmenu
 import contentmenu from 'v-contextmenu'

@@ -1,6 +1,6 @@
 import * as mxgraph from 'mxgraph';
 
-const { mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxUtils, mxConstants, mxPoint, mxUndoManager, mxClipboard } = mxgraph();
+const { mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxUtils, mxConstants, mxPoint, mxCodec, mxUndoManager, mxClipboard,mxRectangle } = mxgraph();
 
 function Editor(bus) {
   this.$bus = bus;
@@ -14,10 +14,10 @@ Editor.prototype.init = function(graphs, id) {
   this.activeGraph = this.graphs[id];
 
   //创建事务管理
-  this.undoManager = this.createUndoManager(); 
+  this.undoManager = this.createUndoManager();
   this.graphs.map(graph => {
     graph.getSelectionModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
-    // graph.getModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
+    graph.getModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
     graph.addListener('cellsInserted', (sender, evt) => {
       this.insertHandler(evt.getProperty('cells'));
     });
@@ -25,20 +25,24 @@ Editor.prototype.init = function(graphs, id) {
     // graph.addListener('styleChanged', (sender, evt) => {
     //   this.styleChanged(evt)
     // })
+    this.loadGraphXml(graph.myXml, graph);
   });
 
-  // 
-  mxEvent.addListener(document.querySelector('.page-list'), 'keydown', mxUtils.bind(this, function(evt)
-	{
-		this.onKeyDown(evt);
-	}));
-	mxEvent.addListener(document.querySelector('.page-list'), 'keypress', mxUtils.bind(this, function(evt)
-	{
-		
-		this.onKeyPress(evt);
-	}));
-
-
+  //
+  mxEvent.addListener(
+    document.querySelector('.page-list'),
+    'keydown',
+    mxUtils.bind(this, function(evt) {
+      this.onKeyDown(evt);
+    })
+  );
+  mxEvent.addListener(
+    document.querySelector('.page-list'),
+    'keypress',
+    mxUtils.bind(this, function(evt) {
+      this.onKeyPress(evt);
+    })
+  );
 
   // 绑定键盘事件
   this.keyHandler = this.bindKeyHandler();
@@ -201,15 +205,15 @@ Editor.prototype.paste = function() {
  * selectAll;
  */
 Editor.prototype.selectAll = function() {
-  this.activeGraph.selectAll(null, true)
+  this.activeGraph.selectAll(null, true);
 };
 
 Editor.prototype.toFront = function() {
-  this.activeGraph.orderCells(false)
+  this.activeGraph.orderCells(false);
 };
 
 Editor.prototype.toBack = function() {
-  this.activeGraph.orderCells(true)
+  this.activeGraph.orderCells(true);
 };
 
 /**
@@ -415,12 +419,13 @@ Editor.prototype.insertLine = function(evt) {
   var allowCellsInserted = true;
   this.createEdge(style, width, height, value, title, showLabel, allowCellsInserted, evt);
 };
+
 /**
  * 插入表格
  */
-Editor.prototype.insertTable = function(DomString,w,h){
-  this.createShape('text;html=1;strokeColor=none;fillColor=#ffffff;overflow=fill;rounded=0;',w,h,DomString,'Table',null,true,null);
-}
+Editor.prototype.insertTable = function(DomString, w, h) {
+  this.createShape('text;html=1;strokeColor=none;fill=none;overflow=fill;rounded=0;', w, h, DomString, 'Table', null, true, null);
+};
 
 /*
  * 创建图形
@@ -598,6 +603,10 @@ Editor.prototype.updateToolBarStates = function() {
   var vertexSelected = false;
   var edgeSelected = false;
 
+  if (graph.cellEditor.isContentEditing()) {
+    this.keyHandler.setEnabled(false);
+  }
+
   var cells = graph.getSelectionCells();
   if (cells != null) {
     for (var i = 0; i < cells.length; i++) {
@@ -741,14 +750,19 @@ Editor.prototype.changeStyle = function(key, value) {
     value = [value];
   }
 
-  graph.stopEditing(false);
   graph.getModel().beginUpdate();
   try {
-    for (var i = 0; i < key.length; i++) {
-      graph.setCellStyles(key[i], value[i]);
-    }
+    if (graph.cellEditor.isContentEditing()) {
+      if (key[0] == 'fontColor') {
+        document.execCommand('foreColor', false, value[0]);
+      }
+    } else {
+      for (var i = 0; i < key.length; i++) {
+        graph.setCellStyles(key[i], value[i]);
+      }
 
-    graph.fireEvent(new mxEventObject('styleChanged', 'keys', key, 'values', value, 'cells', graph.getSelectionCells()));
+      graph.fireEvent(new mxEventObject('styleChanged', 'keys', key, 'values', value, 'cells', graph.getSelectionCells()));
+    }
   } finally {
     graph.getModel().endUpdate();
   }
@@ -898,5 +912,53 @@ Editor.prototype.styleChanged = function(evt) {
     }
   }
 };
+
+
+Editor.prototype.getGraphXml = function(graph) {
+  // ignoreSelection = (ignoreSelection != null) ? ignoreSelection : true;
+  // var node = null;
+
+  // if (ignoreSelection)
+  // {
+  var enc = new mxCodec(mxUtils.createXmlDocument());
+  var node = enc.encode(graph.getModel());
+  // }
+  // else
+  // {
+  // 	node = graph.encodeCells(mxUtils.sortCells(graph.model.getTopmostCells(
+  // 		graph.getSelectionCells())));
+  // }
+  if (graph.view.translate.x != 0 || graph.view.translate.y != 0) {
+    node.setAttribute('dx', Math.round(graph.view.translate.x * 100) / 100);
+    node.setAttribute('dy', Math.round(graph.view.translate.y * 100) / 100);
+  }
+
+  node.setAttribute('grid', graph.isGridEnabled() ? '1' : '0');
+  node.setAttribute('gridSize', graph.gridSize);
+  node.setAttribute('guides', graph.graphHandler.guidesEnabled ? '1' : '0');
+  node.setAttribute('tooltips', graph.tooltipHandler.isEnabled() ? '1' : '0');
+  node.setAttribute('connect', graph.connectionHandler.isEnabled() ? '1' : '0');
+  node.setAttribute('arrows', graph.connectionArrowsEnabled ? '1' : '0');
+  node.setAttribute('fold', graph.foldingEnabled ? '1' : '0');
+  node.setAttribute('page', graph.pageVisible ? '1' : '0');
+  node.setAttribute('pageScale', graph.pageScale);
+  node.setAttribute('pageWidth', graph.pageFormat.width);
+  node.setAttribute('pageHeight', graph.pageFormat.height);
+
+  if (graph.background != null) {
+    node.setAttribute('background', graph.background);
+  }
+  
+  return mxUtils.getXml(node);
+};
+
+
+Editor.prototype.loadGraphXml = function(xml,graph) {
+  if(xml){
+    var doc = mxUtils.parseXml(xml);
+    graph.importGraphModel(doc.documentElement)
+  }
+};
+
 
 export default Editor;

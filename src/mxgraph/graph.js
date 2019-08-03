@@ -51,12 +51,14 @@ mxGraph.prototype.pageScale = 1;
 /**
  *  Graph构造函数
  */
-let Graph = function (container, model, renderHint, stylesheet, themes) {
-    mxGraph.call(this, container, model, renderHint, stylesheet)
+let Graph = function (id,xml,container, model, renderHint, stylesheet, themes,myEditor) {
+    mxGraph.call(this, container, model, renderHint, stylesheet);
+    this.id=id;
     this.themes = themes || this.defaultThemes;
     console.log(this.themes);
     this.container = container;
-
+    this.myEditor = myEditor;
+    this.myXml = xml;
     // 设置svg position属性
     this.svg = this.view.getDrawPane().ownerSVGElement;
     this.svg.style.position = 'absolute';
@@ -505,6 +507,7 @@ let Graph = function (container, model, renderHint, stylesheet, themes) {
         var prevCursor = null;
 
         this.panningHandler.addListener(mxEvent.PAN_START, mxUtils.bind(this, function () {
+            console.log(object);
             if (this.isEnabled()) {
                 prevCursor = this.container.style.cursor;
                 this.container.style.cursor = 'move';
@@ -4208,7 +4211,7 @@ if (typeof mxVertexHandler != 'undefined') {
             var node = this.themes['default'];
             if (node != null) {
                 var dec = new mxCodec(node.ownerDocument);
-                dec.decode(node, this.getStylesheet(), mxStylesheet);
+                dec.decode(node, this.getStylesheet());
             }
         };
 
@@ -4218,12 +4221,12 @@ if (typeof mxVertexHandler != 'undefined') {
         Graph.prototype.importGraphModel = function (node, dx, dy, crop) {
             dx = (dx != null) ? dx : 0;
             dy = (dy != null) ? dy : 0;
-
             var codec = new mxCodec(node.ownerDocument);
             var tempModel = new mxGraphModel();
-            codec.decode(node, tempModel);
-            var cells = []
 
+            codec.decode(node, tempModel);
+
+            var cells = []
             // Clones cells to remove invalid edges
             var layers = tempModel.getChildren(this.cloneCell(
                 tempModel.root, this.isCloneInvalidEdges()));
@@ -4808,7 +4811,6 @@ if (typeof mxVertexHandler != 'undefined') {
                                 // Avoids accidental inserts on background
                                 if (state != null || (mxClient.IS_VML && src == this.view.getCanvas()) ||
                                     (mxClient.IS_SVG && src == this.view.getCanvas().ownerSVGElement)) {
-                                    console.log('触发双击添加文本框addText');
                                     cell = this.addText(pt.x, pt.y, state);
                                 }
                             }
@@ -4870,6 +4872,7 @@ if (typeof mxVertexHandler != 'undefined') {
          * are not allowed currently as states.
          */
         Graph.prototype.addText = function (x, y, state) {
+            return;
             // Creates a new edge label with a predefined text
             var label = new mxCell();
             label.value = 'Text';
@@ -4904,7 +4907,6 @@ if (typeof mxVertexHandler != 'undefined') {
             }
 
             this.getModel().beginUpdate();
-            console.log('addText');
 
             try {
                 this.addCells([label], (state != null) ? state.cell : null);
@@ -5997,6 +5999,7 @@ if (typeof mxVertexHandler != 'undefined') {
                 this.textarea.className = 'mxCellEditor mxPlainTextEditor';
             }
 
+            console.log('startEditing');
             // Toggles markup vs wysiwyg mode
             this.codeViewMode = false;
 
@@ -6009,6 +6012,8 @@ if (typeof mxVertexHandler != 'undefined') {
             // Enables focus outline for edges and edge labels
             var parent = this.graph.getModel().getParent(cell);
             var geo = this.graph.getCellGeometry(cell);
+
+            this.graph.myEditor.keyHandler.setEnabled(false);
 
             if ((this.graph.getModel().isEdge(parent) && geo != null && geo.relative) ||
                 this.graph.getModel().isEdge(cell)) {
@@ -6319,6 +6324,8 @@ if (typeof mxVertexHandler != 'undefined') {
 
             // Tries to move focus back to container after editing if possible
             this.focusContainer();
+            this.graph.myEditor.keyHandler.setEnabled(true);
+            this.graph.myEditor.$bus.$emit('updateToolBarStates', 'stopEditing');
         };
 
         mxCellEditor.prototype.focusContainer = function () {

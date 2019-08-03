@@ -1,7 +1,7 @@
 <template>
-  <div class="toolsbar"   @mousedown.stop.prevent>
+  <div class="toolsbar" @mousedown.prevent>
     <ToolTip content="保存" class="tool-item">
-      <a>
+      <a @click="save">
         <i class="iconfont icon-baocun"></i>
       </a>
     </ToolTip>
@@ -40,7 +40,7 @@
         <!-- <i class="iconfont icon-arrow-drop-down"></i> -->
       </a>
     </ToolTip>
-    <ToolTip class="tool-item" content="形状">
+    <ToolTip class="tool-item" content="形状（待开发）">
       <a>
         <i class="iconfont icon-shapes"></i>
         <i class="iconfont icon-arrow-drop-down"></i>
@@ -101,15 +101,15 @@
       :append-to-body="true"
       class="el-dialog-override"
     >
-      <TableEditor />
+      <TableEditor @close="() => this.dialogTableVisible = !this.dialogTableVisible"/>
     </el-dialog>
 
     <div class="toolbar-separator"></div>
 
     <!-- 文本框和多边形可用的编辑选项 -->
     <div v-show="currentshape == 'label'" class="modifier">
-      <ToolTip class="tool-item" content="填充颜色">
-        <a  @mousedown.stop>
+      <ToolTip class="tool-item" content="填充颜色" v-show="!isContentEditing">
+        <a @mousedown.stop>
           <i class="iconfont icon-tianchong"></i>
           <div class="pickerbox">
             <el-color-picker
@@ -120,8 +120,8 @@
           </div>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="边框颜色">
-        <a  @mousedown.stop>
+      <ToolTip class="tool-item" content="边框颜色" v-show="!isContentEditing">
+        <a @mousedown.stop>
           <i class="iconfont icon-pen"></i>
           <div class="pickerbox">
             <el-color-picker
@@ -132,7 +132,7 @@
           </div>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="边框粗细">
+      <ToolTip class="tool-item" content="边框粗细" v-show="!isContentEditing">
         <el-dropdown
           trigger="click"
           placement="bottom-start"
@@ -151,13 +151,13 @@
           </el-dropdown-menu>
         </el-dropdown>
       </ToolTip>
-      <ToolTip class="tool-item" content="边框线型">
+      <ToolTip class="tool-item" content="边框线型" v-show="!isContentEditing">
         <a>
           <i class="iconfont icon-ic_line_style"></i>
         </a>
       </ToolTip>
-      <div class="toolbar-separator"></div>
-      <ToolTip class="tool-item" content="字体">
+      <div class="toolbar-separator" v-show="!isContentEditing"></div>
+      <ToolTip class="tool-item" content="字体" v-show="!isContentEditing">
         <el-select
           v-model="currentShapeStyle.fontFamily"
           placeholder="请选择"
@@ -175,8 +175,8 @@
           ></el-option>
         </el-select>
       </ToolTip>
-      <div class="toolbar-separator"></div>
-      <ToolTip class="tool-item" content="字号">
+      <div class="toolbar-separator" v-show="!isContentEditing"></div>
+      <ToolTip class="tool-item" content="字号" v-show="!isContentEditing">
         <el-select
           v-model="currentShapeStyle.fontSize"
           placeholder="12"
@@ -187,13 +187,13 @@
           <el-option v-for="item in fontSizeList" :key="item" :label="item" :value="item"></el-option>
         </el-select>
       </ToolTip>
-      <div class="toolbar-separator"></div>
-      <ToolTip class="tool-item" content="粗体">
+      <div class="toolbar-separator" v-show="!isContentEditing"></div>
+      <ToolTip class="tool-item" content="粗体"  v-show="isContentEditing">
         <a onmousedown="event.preventDefault();" @click="()=> this.$Editor.toggleFontStyle('bold')">
           <i class="iconfont icon-font-weight"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="斜体">
+      <ToolTip class="tool-item" content="斜体"  v-show="isContentEditing">
         <a
           onmousedown="event.preventDefault();"
           @click="() => this.$Editor.toggleFontStyle('italic')"
@@ -201,12 +201,12 @@
           <i class="iconfont icon-Italic"></i>
         </a>
       </ToolTip>
-      <ToolTip onmousedown="event.preventDefault();" class="tool-item" content="下划线">
+      <ToolTip class="tool-item" content="下划线"  v-show="isContentEditing">
         <a @click="() => this.$Editor.toggleFontStyle('underline')">
           <i class="iconfont icon-Underline"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="字体颜色">
+      <ToolTip class="tool-item" content="字体颜色"  v-show="isContentEditing">
         <a onmousedown="event.preventDefault();">
           <i class="iconfont icon-zimua"></i>
           <div class="pickerbox">
@@ -218,39 +218,39 @@
           </div>
         </a>
       </ToolTip>
-      <div class="toolbar-separator"></div>
-      <ToolTip class="tool-item" content="左对齐">
+      <div class="toolbar-separator" v-show="isContentEditing"></div>
+      <ToolTip class="tool-item" content="左对齐" v-show="!isContentEditing">
         <a @click="changeStyle('align','left')">
-          <i class="iconfont icon-duiqizuo"></i>
+          <i class="iconfont icon-left-alignment" v-show="!isContentEditing"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="水平居中">
+      <ToolTip class="tool-item" content="水平居中" v-show="!isContentEditing">
         <a onmousedown="event.preventDefault();" @click="changeStyle('align','center')">
-          <i class="iconfont icon-duiqichuizhi"></i>
+          <i class="iconfont icon-Middle"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="右对齐">
+      <ToolTip class="tool-item" content="右对齐" v-show="!isContentEditing">
         <a onmousedown="event.preventDefault();" @click="changeStyle('align','right')">
-          <i class="iconfont icon-duiqiyou"></i>
+          <i class="iconfont icon-Right-alignment"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="上对齐">
+      <ToolTip class="tool-item" content="上对齐" v-show="!isContentEditing">
         <a onmousedown="event.preventDefault();" @click="changeStyle('verticalAlign','top')">
-          <i class="iconfont icon-top"></i>
+          <i class="iconfont icon-veraligntop"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="垂直居中对齐">
+      <ToolTip class="tool-item" content="垂直居中对齐" v-show="!isContentEditing">
         <a onmousedown="event.preventDefault();" @click="changeStyle('verticalAlign','middle')">
-          <i class="iconfont icon-duiqishuiping"></i>
+          <i class="iconfont icon-align-middle"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="下对齐">
+      <ToolTip class="tool-item" content="下对齐" v-show="!isContentEditing">
         <a onmousedown="event.preventDefault();" @click="changeStyle('verticalAlign','bottom')">
-          <i class="iconfont icon-duiqi_xiangshang"></i>
+          <i class="iconfont icon-align-bottom"></i>
         </a>
       </ToolTip>
-      <div class="toolbar-separator"></div>
-      <ToolTip class="tool-item" content="行间距(待开发)">
+      <div class="toolbar-separator" v-show="!isContentEditing"></div>
+      <ToolTip class="tool-item" content="行间距" v-show="isContentEditing">
         <el-dropdown
           trigger="click"
           placement="bottom-start"
@@ -414,7 +414,7 @@ export default {
           label: 'Verdana'
         }
       ],
-      fontSizeList: [6, 7, 8, 9, 10, 11, 12, 14, 18, 24, 30, 36, 48, 60, 72, 96],
+      fontSizeList: [8,9,10,11,12,14,16,18,20,24,28,32,36,40,44,48,54,60,66,72,80,88,96],
       strokeWidthList: [
         {
           value: 1,
@@ -488,8 +488,9 @@ export default {
       edgeSelected: false,
       isfullscreen: false,
       currentshape: '',
+      isContentEditing: false,
       currentShapeStyle: {
-        fontSize: '16',
+        fontSize: '',
         fontFamily: '',
         fontColor: '#ffffff',
         fillColor: '#ffffff',
@@ -510,11 +511,24 @@ export default {
   mounted() {},
   methods: {
     updateToolBarStates(state, vertexSelected, edgeSelected) {
-      // 获取当前选中mxCell的类型，image(图片),label(文本框和图形),connector(线)
+      // 获取当前选中mxCell的类型，image(图片),label(文本框和图形),connector(线),table
       // TODO 见Format.js 3441行
       if (!state) {
         this.currentshape = '';
         return;
+      } else if(state == 'stopEditing') {
+        this.isContentEditing = false;
+        return;
+      } else if(state == 'changeActive') {
+        this.currentshape = '';
+        return
+      }
+
+      // 是否处于双击状态
+      if(this.$Editor.activeGraph.cellEditor.isContentEditing()){
+        this.isContentEditing = true
+      } else {
+        this.isContentEditing = false
       }
 
       const { shape, text, style } = state;
@@ -523,9 +537,13 @@ export default {
 
       // 获取选中mxCell的样式
       this.currentshape = style.shape;
+      
       if (style.shape == 'label') {
         this.currentShapeStyle.strokeColor = stroke || '#fff';
         this.oldStyle.strokeColor = stroke;
+        if(/^\<table/.test(state.cell.value)){
+          this.currentshape = 'table'
+        }
       } else if (style.shape == 'image') {
         this.oldStyle.imgBorderColor = imageBorder;
       } else if (style.shape == 'connector') {
@@ -537,7 +555,7 @@ export default {
 
       this.currentShapeStyle.fontColor = fontColor || '#fff';
       this.currentShapeStyle.fontFamily = fontFamily || 'Arial';
-      this.currentShapeStyle.fontSize = fontSize || '16';
+      this.currentShapeStyle.fontSize = fontSize || 16;
 
       console.log(state);
     },
@@ -562,6 +580,7 @@ export default {
 
       if (style == 'lineHeight' && value) {
         this.$Editor.setLineHeight(value);
+        return;
       }
 
       this.$Editor.changeStyle(style, value);
@@ -611,6 +630,9 @@ export default {
 
       console.log(this.$Editor.activeGraph);
       this.$Editor.createShape(style, width, height, value, title, showLabel, allowCellsInserted);
+    },
+    save(){
+      this.$bus.$emit('save');
     }
   },
   components: {
@@ -696,7 +718,7 @@ export default {
     height: 20px;
   }
   .el-fz {
-    width: 60px;
+    width: 70px;
   }
   .el-ff {
     width: 94px;
@@ -723,6 +745,9 @@ export default {
     height: 41px;
     display: flex;
     align-items: center;
+  }
+  .el-color-picker__color {
+    display: none;
   }
 }
 .el-popper-override {
@@ -774,5 +799,20 @@ export default {
 }
 foreignObject table {
   margin: -1px 0 0 -1px;
+}
+
+.jexcel {
+  .highlight-bottom {
+    border-bottom-color: #3388ff !important;
+  }
+  .highlight-right {
+    border-right-color: #3388ff !important;
+  }
+  .highlight-left {
+     border-left-color: #3388ff !important;
+  }
+  .highlight-top {
+     border-top-color: #3388ff !important;
+  }
 }
 </style>

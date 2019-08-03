@@ -1,10 +1,10 @@
 <template>
   <div class="table-editor-wrapper">
-    <TableToolsBar />
+    <TableToolsBar :spreadsheet="spreadsheet" />
     <div class="table-content">
       <div id="jexcel" ref="spreadsheet"></div>
       <div class="tool">
-        <div class="row">
+        <!-- <div class="row">
           <div>
             <span>行:</span>
             <el-input-number
@@ -28,7 +28,7 @@
             ></el-input-number>
           </div>
         </div>
-        <el-button type="primary" class="el-btn-create_table" @click="createTable">生 成</el-button>
+        <el-button type="primary" class="el-btn-create_table" @click="createTable">生 成</el-button>-->
         <el-button type="primary" class="el-btn-create_table" @click.stop="insertTable">插入表格</el-button>
       </div>
     </div>
@@ -43,6 +43,7 @@ import TableToolsBar from './TableToolsBar';
 var options = {
   data: [[]],
   minDimensions: [3, 3],
+  wordWrap: true,
   columns: [{ width: '150' }, { width: '150' }, { width: '150' }]
 };
 
@@ -79,11 +80,16 @@ export default {
       let tableDomStr = `<table  class="jexcel jexcel-override" width="100%" height="100%" style="width:100%;height:100%;" cellpadding="0" cellspacing="0">${colgroupStr}${copyTbody.outerHTML}</table>`;
 
       this.$Editor.insertTable(tableDomStr, w, h);
-      console.log(w, h);
+      this.$emit('close');
+    },
+    spreadsheet() {
+      return this.spreadsheet;
     }
   },
   mounted() {
     this.spreadsheet = jexcel(document.querySelector('#jexcel'), options);
+    window.spreadsheet = this.spreadsheet;
+    console.log(this.spreadsheet);
   }
 };
 </script>
@@ -93,22 +99,22 @@ export default {
   flex-direction: column;
   width: 100%;
   .table-content {
+    width: 100%;
     display: flex;
+    flex-direction: column;
+    align-items: flex-end;
     .tool {
+      display: flex;
       width: 200px;
-      height: 200px;
-      .row {
-        display: flex;
-        justify-content: space-around;
-      }
     }
   }
   #jexcel {
+    width: 100%;
     flex: 1;
     overflow: auto;
-    margin-right: 20px;
     background: #f5f5f5;
-    min-height: 400px;
+    max-height: 500px;
+    overflow: auto;
   }
 }
 
