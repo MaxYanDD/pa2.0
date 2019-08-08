@@ -1,34 +1,43 @@
 <template>
-  <div class="page-list" v-contextmenu:contextmenu @contextmenu="handleContextMenu">
+  <div
+    class="page-list"
+    v-contextmenu:contextmenu
+    @contextmenu="handleContextMenu"
+    @click.stop="hidePopUp"
+  >
     <!-- 右键菜单 https://github.com/snokier/v-contextmenu/blob/master/docs/usage.md -->
     <v-contextmenu ref="contextmenu" class="menu-override">
       <v-contextmenu-item @click="(e) => this.$Editor.selectAll(e)">
         全选
         <span>Ctrl+A</span>
       </v-contextmenu-item>
-      <v-contextmenu-item v-show="!isSelectionEmpty" @click="(e) => this.$Editor.deletCells(e)">
+      <v-contextmenu-item @click="(e) => this.$Editor.deletCells(e)">
         删除
         <span>Delete</span>
       </v-contextmenu-item>
       <v-contextmenu-item divider></v-contextmenu-item>
-      <v-contextmenu-item v-show="!isSelectionEmpty" @click="(e) => this.$Editor.copy(e)">
+      <v-contextmenu-item @click="(e) => this.$Editor.copy(e)">
         复制
         <span>Ctrl+C</span>
       </v-contextmenu-item>
-      <v-contextmenu-item v-show="!isSelectionEmpty" @click="(e) => this.$Editor.cut(e)">
+      <v-contextmenu-item @click="(e) => this.$Editor.cut(e)">
         剪切
         <span>Ctrl+X</span>
       </v-contextmenu-item>
-      <v-contextmenu-item v-show="isSelectionEmpty" @click="(e) => this.$Editor.pasteHere(e)">
+      <v-contextmenu-item @click="(e) => this.$Editor.pasteHere(e)">
         粘贴
         <span>Ctrl+V</span>
       </v-contextmenu-item>
-      <v-contextmenu-item v-show="!isSelectionEmpty" divider></v-contextmenu-item>
-      <v-contextmenu-item v-show="!isSelectionEmpty" @click="(e) => this.$Editor.toFront(e)">
+      <v-contextmenu-item divider></v-contextmenu-item>
+     <v-contextmenu-item @click="(e) => this.$Editor.toggleLock(e)">
+        锁定/解锁
+        <span>Ctrl+L</span>
+      </v-contextmenu-item>
+      <v-contextmenu-item @click="(e) => this.$Editor.toFront(e)">
         置于顶层
         <span>Ctrl+up</span>
       </v-contextmenu-item>
-      <v-contextmenu-item v-show="!isSelectionEmpty" @click="(e) => this.$Editor.toBack(e)">
+      <v-contextmenu-item @click="(e) => this.$Editor.toBack(e)">
         移至底层
         <span>Ctrl+down</span>
       </v-contextmenu-item>
@@ -36,12 +45,13 @@
 
     <!-- 画布阴影 -->
     <div class="shadow"></div>
+
     <!-- 画布容器 -->
     <div
-      :key="page.id"
-      :ref="page.id"
+      :key="xml.id"
+      :ref="xml.id"
       class="page-item"
-      v-for="(page,index) in pages"
+      v-for="(xml,index) in xmls"
       v-show="index == activeIndex"
     />
   </div>
@@ -54,7 +64,7 @@ import Editor from '../mxgraph/editor';
 
 export default {
   props: {
-    pages: {
+    xmls: {
       type: Array
     },
     activeIndex: {
@@ -71,10 +81,11 @@ export default {
   components: {},
   created() {
     this.themes = themesXML();
+    this.$bus.$on('reload',this.loadXml)
   },
   methods: {
     createPage() {
-      return this.pages.map(page => new Graph(page.id,page.xml, this.$refs[page.id][0], null, null, null, this.themes, this.$Editor));
+      return this.xmls.map(xml => new Graph(xml.id, xml.xml, this.$refs[xml.id][0], null, null, null, this.themes, this.$Editor));
     },
     handleContextMenu() {
       this.isSelectionEmpty = this.$Editor.activeGraph.isSelectionEmpty(); // 右键菜单
@@ -86,15 +97,23 @@ export default {
         this.$refs.contextmenu.hide();
       }
     },
-    newPage() {}
+    newPage() {},
+    hidePopUp() {
+      this.$refs.contextmenu.hide();
+    },
+    loadXml(){
+      this.$Editor.graphs = null;
+      this.$Editor.activeGraph = null;
+      this.$Editor.init(this.createPage(), this.activeIndex);
+    }
   },
   mounted() {
-    this.$Editor.init(this.createPage(), this.activeIndex);
+    this.loadXml();
   }
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .page-list {
   position: relative;
   width: 100%;
@@ -110,31 +129,10 @@ export default {
     position: absolute;
     top: 0;
     left: 0;
-    width: 960px;
-    height: 540px;
-    box-shadow: 0 1px 5px 1px rgba(60, 64, 67, 0.15);
+    width: 1100px;
+    height: 742.5px;
+    box-shadow: 0 7px 21px 0 rgba(0,0,0,.12);
     transform-origin: 0 0;
-  }
-  .jexcel-override {
-    background-color: none;
-    tbody > tr > td:first-child {
-      background-color: transparent;
-    }
-  }
-}
-.menu-override {
-  font-size: 16px;
-  width: 200px;
-  li span {
-    float: right;
-    font-size: 14px;
-    color: #808080;
-    font-family: Arial, Helvetica, sans-serif;
-    line-height: 1;
-  }
-  .v-contextmenu-item--hover {
-    color: #000 !important;
-    background-color: #eff8ff;
   }
 }
 </style>

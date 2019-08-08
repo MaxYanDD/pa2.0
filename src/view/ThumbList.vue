@@ -1,25 +1,28 @@
 <template>
-  <div class="thumb-list" >
-    <div class="thumb-item" v-for="(page,index) in pages" :key="page.id">
-      <span class="serial">{{page.id + 1}}</span>
+  <div class="thumb-list">
+    <el-scrollbar>
       <div
-        class="thumb-box"
+        class="thumb-item"
+        v-for="(xml,index) in xmls"
+        :key="xml.id"
         :class="{active: (index == activeIndex)}"
-        @click="changeActive(page.id,index)"
       >
-        <figure></figure>
-        <div class="thumb-name">
-          <p>{{page.name}}</p>
+        <span class="index">{{xml.id*1 + 1}}</span>
+        <div class="thumb-box" @click="changeActive(xml.id,index)">
+          <figure></figure>
+          <div class="thumb-name">
+            <p>{{xml.title}}</p>
+          </div>
         </div>
       </div>
-    </div>
+    </el-scrollbar>
   </div>
 </template>
 
 <script>
 export default {
   props: {
-    pages: {
+    xmls: {
       type: Array
     },
     activeIndex: {
@@ -28,25 +31,39 @@ export default {
     }
   },
   methods: {
-    changeActive(id,index) {
-      this.$bus.$emit('changeActive', index);
-      this.$Editor.switchGraph(id);
-      console.log(this.$Editor.activeGraph);
+    changeActive(id, index) {
+      this.$bus.$emit('changeActive', id, index);
+    },
+    scrollFunc(e) {
+      var direct = 0;
+      console.log(e);
+      var t1 = document.getElementById('wheelDelta');
+      var t2 = document.getElementById('detail');
+      if (e.wheelDelta) {
+        //IE/Opera/Chrome
+        t1.value = e.wheelDelta;
+      } else if (e.detail) {
+        //Firefox
+        t2.value = e.detail;
+      }
+      ScrollText(direct);
     }
-  },
-
+  }
 };
 </script>
 
 <style lang="scss" scoped>
 .thumb-list {
+  height: 100%;
+  padding-top: 54px;
   .thumb-item {
     display: flex;
     justify-content: flex-end;
     width: 205px;
     margin: 20px 0;
-    .serial {
-      margin-right: 20px;
+
+    .index {
+      margin-right: 6px;
       color: #202124;
     }
     .thumb-box {
@@ -62,11 +79,6 @@ export default {
         border-width: 2px;
         border-color: #8795a1;
       }
-      &.active {
-        margin: -1px;
-        border-width: 2px;
-        border-color: #3388ff;
-      }
     }
     .thumb-name {
       height: 22px;
@@ -77,6 +89,16 @@ export default {
         line-height: 22px;
         font-size: 12px;
         color: #606f7b;
+      }
+    }
+    &.active {
+      .thumb-box {
+        margin: -1px;
+        border-width: 2px;
+        border-color: #3388ff;
+      }
+      .index {
+        color: #3388ff;
       }
     }
   }

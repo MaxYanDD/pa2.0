@@ -6,7 +6,7 @@
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="打印">
-      <a>
+      <a @click="()=>this.$Editor.preview()">
         <i class="iconfont icon-dayin"></i>
       </a>
     </ToolTip>
@@ -557,7 +557,6 @@ export default {
       this.currentShapeStyle.fontFamily = fontFamily || 'Arial';
       this.currentShapeStyle.fontSize = fontSize || 16;
 
-      console.log(state);
     },
     changeStyle(style, value) {
       // 设置边框宽度，给定一个默认边框颜色
@@ -619,7 +618,6 @@ export default {
         .catch(() => {});
     },
     createCostTable() {
-      console.log('创建估价表');
       return;
       let style = 'text;html=1;strokeColor=#c0c0c0;fillColor=#ffffff;overflow=fill;rounded=0;';
       let width = 200;
@@ -647,9 +645,8 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '../assets/sass/theme.scss';
-
 .toolsbar {
   display: flex;
   align-items: center;
@@ -677,142 +674,11 @@ export default {
         color: #3388ff;
       }
     }
-    .pickerbox {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      .el-color-picker {
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      .el-color-picker__trigger {
-        padding: 0;
-        border: none;
-        .el-color-picker__color {
-          position: absolute;
-          left: 6px;
-          bottom: 8px;
-          border: none;
-          width: 20px;
-          height: 4px;
-        }
-      }
-      .el-color-picker__icon {
-        display: none;
-      }
-    }
-    .el-dropdown-link {
-      box-sizing: border-box;
-      display: inline-block;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-    }
-  }
-  .toolbar-separator {
-    border-left: 1px solid #dadce0;
-    margin: 0 4px;
-    height: 20px;
-  }
-  .el-fz {
-    width: 70px;
-  }
-  .el-ff {
-    width: 94px;
-  }
-  .el-select-override {
-    .el-input {
-      height: 100%;
-    }
-    .el-input__inner {
-      height: 100%;
-      border: none;
-      border-radius: 0px;
-      font-size: 12px;
-      padding-left: 0px;
-      padding-right: 0px;
-    }
-    &:hover {
-      .el-input__inner {
-        background-color: #eff8ff;
-      }
-    }
   }
   .modifier {
     height: 41px;
     display: flex;
     align-items: center;
-  }
-  .el-color-picker__color {
-    display: none;
-  }
-}
-.el-popper-override {
-  .el-select-dropdown__wrap {
-    max-height: 1000px;
-  }
-}
-.el-dropdown-override {
-  .el-dropdown-menu__item {
-    font-size: 14px;
-    height: 34px;
-    line-height: 34px;
-    padding: 0 20px;
-    &:hover {
-      background-color: #f5f7fa;
-      color: #000;
-    }
-  }
-}
-.el-input-number-override {
-  display: inline-block;
-  width: 60px;
-  .el-input {
-    .el-input__inner {
-      padding: 0 30px 0 3px;
-    }
-  }
-  span {
-    width: 15px;
-  }
-}
-.el-dialog-override {
-  .el-dialog__body {
-    font-size: 16px;
-    .jexcel-override {
-      font-size: 16px;
-    }
-  }
-  .el-dialog__header {
-    border-bottom: 1px solid #cbcbcb;
-  }
-  .el-dialog__body {
-    padding-top: 0;
-  }
-}
-
-.jexcel-override {
-  user-select: none;
-}
-foreignObject table {
-  margin: -1px 0 0 -1px;
-}
-
-.jexcel {
-  .highlight-bottom {
-    border-bottom-color: #3388ff !important;
-  }
-  .highlight-right {
-    border-right-color: #3388ff !important;
-  }
-  .highlight-left {
-     border-left-color: #3388ff !important;
-  }
-  .highlight-top {
-     border-top-color: #3388ff !important;
   }
 }
 </style>

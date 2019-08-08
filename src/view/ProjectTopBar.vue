@@ -3,7 +3,7 @@
         <div class="tb-left">
             <a class="back fa fa-angle-left" href="###" title="返回"></a>
             <div class="project-info">
-                <span>{{project.name}}</span>
+                <span>{{project.name || '未命名方案'}}</span>
                 <i class="fa fa-edit"></i>
             </div>
             <div class="project-set">
@@ -60,17 +60,9 @@
 
 <script>
     export default {
+        props:['user','project'],
         data() {
             return {
-                project: {
-                    name: "测试方案"
-                },
-                user: {
-                    name: "皮卡丘",
-                    avatar:
-                        "http://cdn.lightank.com/images/2019/0531/be527bb515a582af5ef98b7b6feb75108f88afe4.png",
-                    company: "大同有限公司"
-                }
             };
         },
         methods: {

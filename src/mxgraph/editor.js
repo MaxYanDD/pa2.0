@@ -1,6 +1,6 @@
 import * as mxgraph from 'mxgraph';
 
-const { mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxUtils, mxConstants, mxPoint, mxCodec, mxUndoManager, mxClipboard,mxRectangle } = mxgraph();
+const { mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxTemporaryCellStates, mxResources, mxUtils, mxConstants, mxPoint, mxCodec, mxPrintPreview, mxUndoManager, mxClipboard, mxRectangle } = mxgraph();
 
 function Editor(bus) {
   this.$bus = bus;
@@ -25,7 +25,9 @@ Editor.prototype.init = function(graphs, id) {
     // graph.addListener('styleChanged', (sender, evt) => {
     //   this.styleChanged(evt)
     // })
-    this.loadGraphXml(graph.myXml, graph);
+    if(graph.myXml){
+      this.loadGraphXml(graph.myXml, graph);
+    }
   });
 
   //
@@ -64,7 +66,7 @@ Editor.prototype.bindKeyHandler = function(graph) {
   keyHandler.bindControlKey(38, this.toFront.bind(this));
   keyHandler.bindControlKey(40, this.toBack.bind(this));
   keyHandler.bindControlKey(65, this.selectAll.bind(this));
-
+  keyHandler.bindControlKey(76, this.toggleLock.bind(this));
   return keyHandler;
 };
 
@@ -215,7 +217,23 @@ Editor.prototype.toFront = function() {
 Editor.prototype.toBack = function() {
   this.activeGraph.orderCells(true);
 };
-
+Editor.prototype.toggleLock = function() {
+  var graph = this.activeGraph;
+  if (!graph.isSelectionEmpty()) {
+    graph.getModel().beginUpdate();
+    try {
+      var defaultValue = graph.isCellMovable(graph.getSelectionCell()) ? 1 : 0;
+      graph.toggleCellStyles(mxConstants.STYLE_MOVABLE, defaultValue);
+      graph.toggleCellStyles(mxConstants.STYLE_RESIZABLE, defaultValue);
+      graph.toggleCellStyles(mxConstants.STYLE_ROTATABLE, defaultValue);
+      graph.toggleCellStyles(mxConstants.STYLE_DELETABLE, defaultValue);
+      graph.toggleCellStyles(mxConstants.STYLE_EDITABLE, defaultValue);
+      graph.toggleCellStyles('connectable', defaultValue);
+    } finally {
+      graph.getModel().endUpdate();
+    }
+  }
+};
 /**
  * pasteHere;
  */
@@ -741,7 +759,7 @@ Editor.prototype.insertHandler = function(cells, asText) {
 };
 
 /**
- * 改变样式
+ * 改变mxcell样式
  */
 Editor.prototype.changeStyle = function(key, value) {
   var graph = this.activeGraph;
@@ -913,7 +931,9 @@ Editor.prototype.styleChanged = function(evt) {
   }
 };
 
-
+/**
+ * 获取graph的xml
+ */
 Editor.prototype.getGraphXml = function(graph) {
   // ignoreSelection = (ignoreSelection != null) ? ignoreSelection : true;
   // var node = null;
@@ -948,17 +968,301 @@ Editor.prototype.getGraphXml = function(graph) {
   if (graph.background != null) {
     node.setAttribute('background', graph.background);
   }
-  
+
   return mxUtils.getXml(node);
 };
 
-
-Editor.prototype.loadGraphXml = function(xml,graph) {
-  if(xml){
+/**
+ * 回填xml格式page
+ */
+Editor.prototype.loadGraphXml = function(xml, graph) {
+  if (xml) {
     var doc = mxUtils.parseXml(xml);
-    graph.importGraphModel(doc.documentElement)
+    graph.importGraphModel(doc.documentElement);
   }
 };
 
+/**
+ * 预览
+ */
+Editor.prototype.preview = function() {
+  var graph = this.activeGraph;
+  var autoOrigin = false;
+  var printScale = 1;
+
+  if (isNaN(printScale)) {
+    printScale = 1;
+    pageScaleInput.value = '100%';
+  }
+
+  // Workaround to match available paper size in actual print output
+  // printScale *= 1;
+
+  var pf = graph.pageFormat || mxConstants.PAGE_FORMAT_A4_PORTRAIT;
+  var scale = 1 / graph.pageScale;
+
+  if (autoOrigin) {
+    var pageCount = onePageCheckBox.checked ? 1 : parseInt(pageCountInput.value);
+
+    if (!isNaN(pageCount)) {
+      scale = mxUtils.getScaleForPageCount(pageCount, graph, pf);
+    }
+  }
+
+  // Negative coordinates are cropped or shifted if page visible
+  var gb = graph.getGraphBounds();
+  var border = 0;
+  var x0 = 0;
+  var y0 = 0;
+
+  // Applies print scale
+  pf = mxRectangle.fromRectangle(pf);
+  pf.width = Math.ceil(pf.width * printScale);
+  pf.height = Math.ceil(pf.height * printScale);
+  scale *= printScale;
+
+  // Starts at first visible page
+  if (!autoOrigin && graph.pageVisible) {
+    var layout = graph.getPageLayout();
+    x0 -= layout.x * pf.width;
+    y0 -= layout.y * pf.height;
+  } else {
+    autoOrigin = true;
+  }
+
+  var preview = this.createPrintPreview(graph, scale, pf, border, x0, y0, autoOrigin);
+  preview.open();
+};
+
+Editor.prototype.createPrintPreview = function(graph, scale, pf, border, x0, y0, autoOrigin) {
+  var preview = new mxPrintPreview(graph, scale, pf, border, x0, y0);
+  preview.title = mxResources.get('preview');
+  preview.printBackgroundImage = false;
+  preview.autoOrigin = autoOrigin;
+  var bg = graph.background;
+
+  if (bg == null || bg == '' || bg == mxConstants.NONE) {
+    bg = '#ffffff';
+  }
+
+  preview.backgroundColor = bg;
+
+  var writeHead = preview.writeHead;
+
+  // Adds a border in the preview
+  preview.writeHead = function(doc) {
+    writeHead.apply(this, arguments);
+
+    doc.writeln('<style type="text/css">');
+    doc.writeln('@media screen {');
+    doc.writeln('  body > div { box-sizing:content-box; }');
+    doc.writeln('}');
+    doc.writeln(`
+      @media print {
+        * {
+          margin: 0;
+        }
+        @page {
+          margin: 0;
+          position: relative;
+        }
+        body > div {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100% !important;
+        }
+      }
+    `);
+    doc.writeln('</style>');
+  };
+
+  return preview;
+};
+
+/**
+ * 创建预览DOM节点列表
+ */
+Editor.prototype.createSvgStr = function() {
+
+  // var wrapDiv = document.createElement('div');
+  // wrapDiv.style.cssText = `
+  //   position: absolute;
+  //   top: 0;
+  //   left: 0;
+  //   z-index: -20;
+  // `;
+  // document.body.appendChild(wrapDiv);
+  var pageStrList = [];
+  this.graphs.forEach(graph => {
+    var div = document.createElement('div');
+    div.style.cssText = `
+     overflow: hidden; break-inside: avoid; break-after: avoid;background:#fff;
+     width: 1100px;height:742.5px;transform: scale(1.45);transform-origin: 0 0;
+    `;
+    this.addGraphFragment(div, graph);
+    pageStrList.push(div.outerHTML);
+  });
+
+
+  console.log(pageStrList);
+  return pageStrList
+};
+
+Editor.prototype.addGraphFragment = function(div, graph) {
+  var scale = 1;
+  var dx = 0;
+  var dy = 0;
+  var clip = graph.pageFormat;
+  var view = graph.getView();
+  var previousContainer = graph.container;
+  graph.container = div;
+
+  var canvas = view.getCanvas();
+  var backgroundPane = view.getBackgroundPane();
+  var drawPane = view.getDrawPane();
+  var overlayPane = view.getOverlayPane();
+
+  if (graph.dialect == mxConstants.DIALECT_SVG) {
+    view.createSvg();
+
+    // Uses CSS transform for scaling
+    if (!mxClient.NO_FO) {
+      var g = view.getDrawPane().parentNode;
+      var prev = g.getAttribute('transform');
+      g.setAttribute('transformOrigin', '0 0');
+      g.setAttribute('transform', 'scale(' + scale + ',' + scale + ')' + 'translate(' + dx + ',' + dy + ')');
+
+      scale = 1;
+      dx = 0;
+      dy = 0;
+    }
+  } else if (graph.dialect == mxConstants.DIALECT_VML) {
+    view.createVml();
+  } else {
+    view.createHtml();
+  }
+
+  // Disables events on the view
+  var eventsEnabled = view.isEventsEnabled();
+  view.setEventsEnabled(false);
+
+  // Disables the graph to avoid cursors
+  var graphEnabled = graph.isEnabled();
+  graph.setEnabled(false);
+
+  // Resets the translation
+  var translate = view.getTranslate();
+  view.translate = new mxPoint(dx, dy);
+
+  // Redraws only states that intersect the clip
+  var redraw = graph.cellRenderer.redraw;
+  var states = view.states;
+  var s = view.scale;
+
+  // Gets the transformed clip for intersection check below
+  if (this.clipping) {
+    var tempClip = new mxRectangle((clip.x + translate.x) * s, (clip.y + translate.y) * s, (clip.width * s) / scale, (clip.height * s) / scale);
+
+    // Checks clipping rectangle for speedup
+    // Must create terminal states for edge clipping even if terminal outside of clip
+    graph.cellRenderer.redraw = function(state, force, rendering) {
+      if (state != null) {
+        // Gets original state from graph to find bounding box
+        var orig = states.get(state.cell);
+
+        if (orig != null) {
+          var bbox = view.getBoundingBox(orig, false);
+
+          // Stops rendering if outside clip for speedup
+          if (bbox != null && !mxUtils.intersects(tempClip, bbox)) {
+            //return;
+          }
+        }
+      }
+
+      redraw.apply(this, arguments);
+    };
+  }
+
+  var temp = null;
+
+  try {
+    // Creates the temporary cell states in the view and
+    // draws them onto the temporary DOM nodes in the view
+    var cells = [graph.getModel().getRoot()];
+    temp = new mxTemporaryCellStates(
+      view,
+      scale,
+      cells,
+      null,
+      mxUtils.bind(this, function(state) {
+        return graph.getLinkForCell(state.cell);
+      })
+    );
+  } finally {
+    // Removes overlay pane with selection handles
+    // controls and icons from the print output
+    if (mxClient.IS_IE) {
+      view.overlayPane.innerHTML = '';
+      view.canvas.style.overflow = 'hidden';
+      view.canvas.style.position = 'relative';
+      view.canvas.style.top = this.marginTop + 'px';
+      view.canvas.style.width = clip.width + 'px';
+      view.canvas.style.height = clip.height + 'px';
+    } else {
+      // Removes everything but the SVG node
+      var tmp = div.firstChild;
+
+      while (tmp != null) {
+        var next = tmp.nextSibling;
+        var name = tmp.nodeName.toLowerCase();
+
+        // Note: Width and height are required in FF 11
+        if (name == 'svg') {
+          tmp.style.overflow = 'hidden';
+          tmp.style.position = 'relative';
+          tmp.style.top = this.marginTop + 'px';
+          tmp.setAttribute('width', clip.width);
+          tmp.setAttribute('height', clip.height);
+          tmp.style.width = '';
+          tmp.style.height = '';
+        }
+        // Tries to fetch all text labels and only text labels
+        else if (tmp.style.cursor != 'default' && name != 'div') {
+          tmp.parentNode.removeChild(tmp);
+        }
+
+        tmp = next;
+      }
+    }
+
+    // Puts background image behind SVG output
+    if (this.printBackgroundImage) {
+      var svgs = div.getElementsByTagName('svg');
+
+      if (svgs.length > 0) {
+        svgs[0].style.position = 'absolute';
+      }
+    }
+
+    // // Completely removes the overlay pane to remove more handles
+    // view.overlayPane.parentNode.removeChild(view.overlayPane);
+
+    // // Restores the state of the view
+    graph.setEnabled(graphEnabled);
+    graph.container = previousContainer;
+    graph.cellRenderer.redraw = redraw;
+    view.canvas = canvas;
+    view.backgroundPane = backgroundPane;
+    view.drawPane = drawPane;
+    view.overlayPane = overlayPane;
+    view.translate = translate;
+    temp.destroy();
+    view.setEventsEnabled(eventsEnabled);
+  }
+};
 
 export default Editor;

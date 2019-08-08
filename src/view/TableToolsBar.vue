@@ -1,5 +1,5 @@
 <template>
-  <div class="toolsbar table-toolsbar" @mousedown.stop>
+  <div class="table-toolsbar" @mousedown.stop>
     <ToolTip class="tool-item" content="撤销">
       <a @click="() => this.table.undo()">
         <i class="iconfont icon-undo"></i>
@@ -227,11 +227,35 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .table-toolsbar {
-  align-items: center;
   margin: 5px 0;
   border-bottom: none;
   padding: 0;
+  display: flex;
+  align-items: center;
+  height: 41px;
+   .tool-item {
+    position: relative;
+    display: inline-block;
+    min-width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    font-size: 14px;
+    padding: 0 5px;
+    i {
+      font-size: 16px;
+      vertical-align: middle;
+      color: #606f7b;
+      line-height: 32px;
+    }
+    &:hover {
+      background-color: #eff8ff;
+      i {
+        color: #3388ff;
+      }
+    }
+  }
 }
 </style>

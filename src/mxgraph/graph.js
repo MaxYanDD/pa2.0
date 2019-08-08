@@ -43,15 +43,16 @@ const {
 } = mxgraph();
 
 /**
- *  重置默认配置
+ *  画布大小
  */
-mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 960, 720);
+// mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 960, 720);
+mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 1100, 778);
 mxGraph.prototype.pageScale = 1;
 
 /**
  *  Graph构造函数
  */
-let Graph = function (id,xml,container, model, renderHint, stylesheet, themes,myEditor) {
+let Graph = function (id,xml,container, model, renderHint, stylesheet, themes, myEditor) {
     mxGraph.call(this, container, model, renderHint, stylesheet);
     this.id=id;
     this.themes = themes || this.defaultThemes;
@@ -59,6 +60,7 @@ let Graph = function (id,xml,container, model, renderHint, stylesheet, themes,my
     this.container = container;
     this.myEditor = myEditor;
     this.myXml = xml;
+    
     // 设置svg position属性
     this.svg = this.view.getDrawPane().ownerSVGElement;
     this.svg.style.position = 'absolute';
@@ -102,217 +104,217 @@ let Graph = function (id,xml,container, model, renderHint, stylesheet, themes,my
         return (style != null) ? (style['html'] == '1' || style[mxConstants.STYLE_WHITE_SPACE] == 'wrap') : false;
     };
 
-    // Implements a listener for hover and click handling on edges
-    if (this.edgeMode) {
-        var start = {
-            point: null,
-            event: null,
-            state: null,
-            handle: null,
-            selected: false
-        };
+    // // Implements a listener for hover and click handling on edges
+    // if (this.edgeMode) {
+    //     var start = {
+    //         point: null,
+    //         event: null,
+    //         state: null,
+    //         handle: null,
+    //         selected: false
+    //     };
 
-        // Uses this event to process mouseDown to check the selection state before it is changed
-        this.addListener(mxEvent.FIRE_MOUSE_EVENT, mxUtils.bind(this, function (sender, evt) {
-            if (evt.getProperty('eventName') == 'mouseDown' && this.isEnabled()) {
-                var me = evt.getProperty('event');
+    //     // Uses this event to process mouseDown to check the selection state before it is changed
+    //     this.addListener(mxEvent.FIRE_MOUSE_EVENT, mxUtils.bind(this, function (sender, evt) {
+    //         if (evt.getProperty('eventName') == 'mouseDown' && this.isEnabled()) {
+    //             var me = evt.getProperty('event');
 
-                if (!mxEvent.isControlDown(me.getEvent()) && !mxEvent.isShiftDown(me.getEvent())) {
-                    var state = me.getState();
+    //             if (!mxEvent.isControlDown(me.getEvent()) && !mxEvent.isShiftDown(me.getEvent())) {
+    //                 var state = me.getState();
 
-                    if (state != null) {
-                        // Checks if state was removed in call to stopEditing above
-                        if (this.model.isEdge(state.cell)) {
-                            start.point = new mxPoint(me.getGraphX(), me.getGraphY());
-                            start.selected = this.isCellSelected(state.cell);
-                            start.state = state;
-                            start.event = me;
+    //                 if (state != null) {
+    //                     // Checks if state was removed in call to stopEditing above
+    //                     if (this.model.isEdge(state.cell)) {
+    //                         start.point = new mxPoint(me.getGraphX(), me.getGraphY());
+    //                         start.selected = this.isCellSelected(state.cell);
+    //                         start.state = state;
+    //                         start.event = me;
 
-                            if (state.text != null && state.text.boundingBox != null &&
-                                mxUtils.contains(state.text.boundingBox, me.getGraphX(), me.getGraphY())) {
-                                start.handle = mxEvent.LABEL_HANDLE;
-                            } else {
-                                var handler = this.selectionCellsHandler.getHandler(state.cell);
+    //                         if (state.text != null && state.text.boundingBox != null &&
+    //                             mxUtils.contains(state.text.boundingBox, me.getGraphX(), me.getGraphY())) {
+    //                             start.handle = mxEvent.LABEL_HANDLE;
+    //                         } else {
+    //                             var handler = this.selectionCellsHandler.getHandler(state.cell);
 
-                                if (handler != null && handler.bends != null && handler.bends.length > 0) {
-                                    start.handle = handler.getHandleForEvent(me);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }));
+    //                             if (handler != null && handler.bends != null && handler.bends.length > 0) {
+    //                                 start.handle = handler.getHandleForEvent(me);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }));
 
-        var mouseDown = null;
+    //     var mouseDown = null;
 
-        this.addMouseListener({
-            mouseDown: function (sender, me) {
-            },
-            mouseMove: mxUtils.bind(this, function (sender, me) {
-                // Checks if any other handler is active
-                var handlerMap = this.selectionCellsHandler.handlers.map;
+    //     this.addMouseListener({
+    //         mouseDown: function (sender, me) {
+    //         },
+    //         mouseMove: mxUtils.bind(this, function (sender, me) {
+    //             // Checks if any other handler is active
+    //             var handlerMap = this.selectionCellsHandler.handlers.map;
 
-                for (var key in handlerMap) {
-                    if (handlerMap[key].index != null) {
-                        return;
-                    }
-                }
+    //             for (var key in handlerMap) {
+    //                 if (handlerMap[key].index != null) {
+    //                     return;
+    //                 }
+    //             }
 
-                if (this.isEnabled() && !this.panningHandler.isActive() && !mxEvent.isControlDown(me.getEvent()) &&
-                    !mxEvent.isShiftDown(me.getEvent()) && !mxEvent.isAltDown(me.getEvent())) {
-                    var tol = this.tolerance;
+    //             if (this.isEnabled() && !this.panningHandler.isActive() && !mxEvent.isControlDown(me.getEvent()) &&
+    //                 !mxEvent.isShiftDown(me.getEvent()) && !mxEvent.isAltDown(me.getEvent())) {
+    //                 var tol = this.tolerance;
 
-                    if (start.point != null && start.state != null && start.event != null) {
-                        var state = start.state;
+    //                 if (start.point != null && start.state != null && start.event != null) {
+    //                     var state = start.state;
 
-                        if (Math.abs(start.point.x - me.getGraphX()) > tol ||
-                            Math.abs(start.point.y - me.getGraphY()) > tol) {
-                            // Lazy selection for edges inside groups
-                            if (!this.isCellSelected(state.cell)) {
-                                this.setSelectionCell(state.cell);
-                            }
+    //                     if (Math.abs(start.point.x - me.getGraphX()) > tol ||
+    //                         Math.abs(start.point.y - me.getGraphY()) > tol) {
+    //                         // Lazy selection for edges inside groups
+    //                         if (!this.isCellSelected(state.cell)) {
+    //                             this.setSelectionCell(state.cell);
+    //                         }
 
-                            var handler = this.selectionCellsHandler.getHandler(state.cell);
+    //                         var handler = this.selectionCellsHandler.getHandler(state.cell);
 
-                            if (handler != null && handler.bends != null && handler.bends.length > 0) {
-                                var handle = handler.getHandleForEvent(start.event);
-                                var edgeStyle = this.view.getEdgeStyle(state);
-                                var entity = edgeStyle == mxEdgeStyle.EntityRelation;
+    //                         if (handler != null && handler.bends != null && handler.bends.length > 0) {
+    //                             var handle = handler.getHandleForEvent(start.event);
+    //                             var edgeStyle = this.view.getEdgeStyle(state);
+    //                             var entity = edgeStyle == mxEdgeStyle.EntityRelation;
 
-                                // Handles special case where label was clicked on unselected edge in which
-                                // case the label will be moved regardless of the handle that is returned
-                                if (!start.selected && start.handle == mxEvent.LABEL_HANDLE) {
-                                    handle = start.handle;
-                                }
+    //                             // Handles special case where label was clicked on unselected edge in which
+    //                             // case the label will be moved regardless of the handle that is returned
+    //                             if (!start.selected && start.handle == mxEvent.LABEL_HANDLE) {
+    //                                 handle = start.handle;
+    //                             }
 
-                                if (!entity || handle == 0 || handle == handler.bends.length - 1 || handle == mxEvent.LABEL_HANDLE) {
-                                    // Source or target handle or connected for direct handle access or orthogonal line
-                                    // with just two points where the central handle is moved regardless of mouse position
-                                    if (handle == mxEvent.LABEL_HANDLE || handle == 0 || state.visibleSourceState != null ||
-                                        handle == handler.bends.length - 1 || state.visibleTargetState != null) {
-                                        if (!entity && handle != mxEvent.LABEL_HANDLE) {
-                                            var pts = state.absolutePoints;
+    //                             if (!entity || handle == 0 || handle == handler.bends.length - 1 || handle == mxEvent.LABEL_HANDLE) {
+    //                                 // Source or target handle or connected for direct handle access or orthogonal line
+    //                                 // with just two points where the central handle is moved regardless of mouse position
+    //                                 if (handle == mxEvent.LABEL_HANDLE || handle == 0 || state.visibleSourceState != null ||
+    //                                     handle == handler.bends.length - 1 || state.visibleTargetState != null) {
+    //                                     if (!entity && handle != mxEvent.LABEL_HANDLE) {
+    //                                         var pts = state.absolutePoints;
 
-                                            // Default case where handles are at corner points handles
-                                            // drag of corner as drag of existing point
-                                            if (pts != null && ((edgeStyle == null && handle == null) ||
-                                                edgeStyle == mxEdgeStyle.OrthConnector)) {
-                                                // Does not use handles if they were not initially visible
-                                                handle = start.handle;
+    //                                         // Default case where handles are at corner points handles
+    //                                         // drag of corner as drag of existing point
+    //                                         if (pts != null && ((edgeStyle == null && handle == null) ||
+    //                                             edgeStyle == mxEdgeStyle.OrthConnector)) {
+    //                                             // Does not use handles if they were not initially visible
+    //                                             handle = start.handle;
 
-                                                if (handle == null) {
-                                                    var box = new mxRectangle(start.point.x, start.point.y);
-                                                    box.grow(mxEdgeHandler.prototype.handleImage.width / 2);
+    //                                             if (handle == null) {
+    //                                                 var box = new mxRectangle(start.point.x, start.point.y);
+    //                                                 box.grow(mxEdgeHandler.prototype.handleImage.width / 2);
 
-                                                    if (mxUtils.contains(box, pts[0].x, pts[0].y)) {
-                                                        // Moves source terminal handle
-                                                        handle = 0;
-                                                    } else if (mxUtils.contains(box, pts[pts.length - 1].x, pts[pts.length - 1].y)) {
-                                                        // Moves target terminal handle
-                                                        handle = handler.bends.length - 1;
-                                                    } else {
-                                                        // Checks if edge has no bends
-                                                        var nobends = edgeStyle != null && (pts.length == 2 || (pts.length == 3 &&
-                                                            ((Math.round(pts[0].x - pts[1].x) == 0 && Math.round(pts[1].x - pts[2].x) == 0) ||
-                                                                (Math.round(pts[0].y - pts[1].y) == 0 && Math.round(pts[1].y - pts[2].y) == 0))));
+    //                                                 if (mxUtils.contains(box, pts[0].x, pts[0].y)) {
+    //                                                     // Moves source terminal handle
+    //                                                     handle = 0;
+    //                                                 } else if (mxUtils.contains(box, pts[pts.length - 1].x, pts[pts.length - 1].y)) {
+    //                                                     // Moves target terminal handle
+    //                                                     handle = handler.bends.length - 1;
+    //                                                 } else {
+    //                                                     // Checks if edge has no bends
+    //                                                     var nobends = edgeStyle != null && (pts.length == 2 || (pts.length == 3 &&
+    //                                                         ((Math.round(pts[0].x - pts[1].x) == 0 && Math.round(pts[1].x - pts[2].x) == 0) ||
+    //                                                             (Math.round(pts[0].y - pts[1].y) == 0 && Math.round(pts[1].y - pts[2].y) == 0))));
 
-                                                        if (nobends) {
-                                                            // Moves central handle for straight orthogonal edges
-                                                            handle = 2;
-                                                        } else {
-                                                            // Finds and moves vertical or horizontal segment
-                                                            handle = mxUtils.findNearestSegment(state, start.point.x, start.point.y);
+    //                                                     if (nobends) {
+    //                                                         // Moves central handle for straight orthogonal edges
+    //                                                         handle = 2;
+    //                                                     } else {
+    //                                                         // Finds and moves vertical or horizontal segment
+    //                                                         handle = mxUtils.findNearestSegment(state, start.point.x, start.point.y);
 
-                                                            // Converts segment to virtual handle index
-                                                            if (edgeStyle == null) {
-                                                                handle = mxEvent.VIRTUAL_HANDLE - handle;
-                                                            }
-                                                            // Maps segment to handle
-                                                            else {
-                                                                handle += 1;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
+    //                                                         // Converts segment to virtual handle index
+    //                                                         if (edgeStyle == null) {
+    //                                                             handle = mxEvent.VIRTUAL_HANDLE - handle;
+    //                                                         }
+    //                                                         // Maps segment to handle
+    //                                                         else {
+    //                                                             handle += 1;
+    //                                                         }
+    //                                                     }
+    //                                                 }
+    //                                             }
+    //                                         }
 
-                                            // Creates a new waypoint and starts moving it
-                                            if (handle == null) {
-                                                handle = mxEvent.VIRTUAL_HANDLE;
-                                            }
-                                        }
+    //                                         // Creates a new waypoint and starts moving it
+    //                                         if (handle == null) {
+    //                                             handle = mxEvent.VIRTUAL_HANDLE;
+    //                                         }
+    //                                     }
 
-                                        handler.start(me.getGraphX(), me.getGraphX(), handle);
-                                        start.state = null;
-                                        start.event = null;
-                                        start.point = null;
-                                        start.handle = null;
-                                        start.selected = false;
-                                        me.consume();
+    //                                     handler.start(me.getGraphX(), me.getGraphX(), handle);
+    //                                     start.state = null;
+    //                                     start.event = null;
+    //                                     start.point = null;
+    //                                     start.handle = null;
+    //                                     start.selected = false;
+    //                                     me.consume();
 
-                                        // Removes preview rectangle in graph handler
-                                        this.graphHandler.reset();
-                                    }
-                                } else if (entity && (state.visibleSourceState != null || state.visibleTargetState != null)) {
-                                    // Disables moves on entity to make it consistent
-                                    this.graphHandler.reset();
-                                    me.consume();
-                                }
-                            }
-                        }
-                    } else {
-                        // Updates cursor for unselected edges under the mouse
-                        var state = me.getState();
+    //                                     // Removes preview rectangle in graph handler
+    //                                     this.graphHandler.reset();
+    //                                 }
+    //                             } else if (entity && (state.visibleSourceState != null || state.visibleTargetState != null)) {
+    //                                 // Disables moves on entity to make it consistent
+    //                                 this.graphHandler.reset();
+    //                                 me.consume();
+    //                             }
+    //                         }
+    //                     }
+    //                 } else {
+    //                     // Updates cursor for unselected edges under the mouse
+    //                     var state = me.getState();
 
-                        if (state != null) {
-                            // Checks if state was removed in call to stopEditing above
-                            if (this.model.isEdge(state.cell)) {
-                                var cursor = null;
-                                var pts = state.absolutePoints;
+    //                     if (state != null) {
+    //                         // Checks if state was removed in call to stopEditing above
+    //                         if (this.model.isEdge(state.cell)) {
+    //                             var cursor = null;
+    //                             var pts = state.absolutePoints;
 
-                                if (pts != null) {
-                                    var box = new mxRectangle(me.getGraphX(), me.getGraphY());
-                                    box.grow(mxEdgeHandler.prototype.handleImage.width / 2);
+    //                             if (pts != null) {
+    //                                 var box = new mxRectangle(me.getGraphX(), me.getGraphY());
+    //                                 box.grow(mxEdgeHandler.prototype.handleImage.width / 2);
 
-                                    if (state.text != null && state.text.boundingBox != null &&
-                                        mxUtils.contains(state.text.boundingBox, me.getGraphX(), me.getGraphY())) {
-                                        cursor = 'move';
-                                    } else if (mxUtils.contains(box, pts[0].x, pts[0].y) ||
-                                        mxUtils.contains(box, pts[pts.length - 1].x, pts[pts.length - 1].y)) {
-                                        cursor = 'pointer';
-                                    } else if (state.visibleSourceState != null || state.visibleTargetState != null) {
-                                        // Moving is not allowed for entity relation but still indicate hover state
-                                        var tmp = this.view.getEdgeStyle(state);
-                                        cursor = 'crosshair';
+    //                                 if (state.text != null && state.text.boundingBox != null &&
+    //                                     mxUtils.contains(state.text.boundingBox, me.getGraphX(), me.getGraphY())) {
+    //                                     cursor = 'move';
+    //                                 } else if (mxUtils.contains(box, pts[0].x, pts[0].y) ||
+    //                                     mxUtils.contains(box, pts[pts.length - 1].x, pts[pts.length - 1].y)) {
+    //                                     cursor = 'pointer';
+    //                                 } else if (state.visibleSourceState != null || state.visibleTargetState != null) {
+    //                                     // Moving is not allowed for entity relation but still indicate hover state
+    //                                     var tmp = this.view.getEdgeStyle(state);
+    //                                     cursor = 'crosshair';
 
-                                        if (tmp != mxEdgeStyle.EntityRelation && this.isOrthogonal(state)) {
-                                            var idx = mxUtils.findNearestSegment(state, me.getGraphX(), me.getGraphY());
+    //                                     if (tmp != mxEdgeStyle.EntityRelation && this.isOrthogonal(state)) {
+    //                                         var idx = mxUtils.findNearestSegment(state, me.getGraphX(), me.getGraphY());
 
-                                            if (idx < pts.length - 1 && idx >= 0) {
-                                                cursor = (Math.round(pts[idx].x - pts[idx + 1].x) == 0) ?
-                                                    'col-resize' : 'row-resize';
-                                            }
-                                        }
-                                    }
-                                }
+    //                                         if (idx < pts.length - 1 && idx >= 0) {
+    //                                             cursor = (Math.round(pts[idx].x - pts[idx + 1].x) == 0) ?
+    //                                                 'col-resize' : 'row-resize';
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
 
-                                if (cursor != null) {
-                                    state.setCursor(cursor);
-                                }
-                            }
-                        }
-                    }
-                }
-            }),
-            mouseUp: mxUtils.bind(this, function (sender, me) {
-                start.state = null;
-                start.event = null;
-                start.point = null;
-                start.handle = null;
-            })
-        });
-    }
+    //                             if (cursor != null) {
+    //                                 state.setCursor(cursor);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }),
+    //         mouseUp: mxUtils.bind(this, function (sender, me) {
+    //             start.state = null;
+    //             start.event = null;
+    //             start.point = null;
+    //             start.handle = null;
+    //         })
+    //     });
+    // }
 
     // HTML entities are displayed as plain text in wrapped plain text labels
     this.cellRenderer.getLabelValue = function (state) {
@@ -333,8 +335,8 @@ let Graph = function (id,xml,container, model, renderHint, stylesheet, themes,my
     if (typeof mxVertexHandler !== 'undefined') {
         this.setConnectable(false);
         this.setDropEnabled(false);
-        this.setPanning(true);
-        this.setTooltips(true);
+        this.setPanning(false);
+        this.setTooltips(false);
         this.setAllowLoops(false);
         this.allowAutoPanning = false;
         this.resetEdgesOnConnect = false;
@@ -4035,10 +4037,10 @@ if (typeof mxVertexHandler != 'undefined') {
         mxConstants.HIGHLIGHT_SIZE = 5;
 
         // Enables snapping to off-grid terminals for edge waypoints
-        mxEdgeHandler.prototype.snapToTerminals = true;
+        mxEdgeHandler.prototype.snapToTerminals = false;
 
         // Enables guides
-        mxGraphHandler.prototype.guidesEnabled = true;
+        mxGraphHandler.prototype.guidesEnabled = true; // 控制中线，边界提醒
 
         // Enables fading of rubberband
         mxRubberband.prototype.fadeOut = true;
@@ -5962,14 +5964,14 @@ if (typeof mxVertexHandler != 'undefined') {
             mxCellRendererInitializeLabel.apply(this, arguments);
         };
 
-        var mxConstraintHandlerUpdate = mxConstraintHandler.prototype.update;
-        mxConstraintHandler.prototype.update = function (me, source) {
-            if (this.isKeepFocusEvent(me) || !mxEvent.isAltDown(me.getEvent())) {
-                mxConstraintHandlerUpdate.apply(this, arguments);
-            } else {
-                this.reset();
-            }
-        };
+        // var mxConstraintHandlerUpdate = mxConstraintHandler.prototype.update;
+        // mxConstraintHandler.prototype.update = function (me, source) {
+        //     if (this.isKeepFocusEvent(me) || !mxEvent.isAltDown(me.getEvent())) {
+        //         mxConstraintHandlerUpdate.apply(this, arguments);
+        //     } else {
+        //         this.reset();
+        //     }
+        // };
 
         /**
          * No dashed shapes.
@@ -6395,12 +6397,12 @@ if (typeof mxVertexHandler != 'undefined') {
         /**
          * Hints on handlers
          */
-        function createHint() {
+        function createHint() { // 创建尺寸提示框
             var hint = document.createElement('div');
             hint.className = 'geHint';
             hint.style.whiteSpace = 'nowrap';
             hint.style.position = 'absolute';
-
+            console.log('createHint');
             return hint;
         };
 
@@ -6543,7 +6545,7 @@ if (typeof mxVertexHandler != 'undefined') {
                     var pt = this.constraintHandler.currentConstraint.point;
                     this.hint.innerHTML = '[' + Math.round(pt.x * 100) + '%, ' + Math.round(pt.y * 100) + '%]';
                 } else if (this.marker.hasValidState()) {
-                    this.hint.style.visibility = 'hidden';
+                    // this.hint.style.visibility = 'hidden';
                 }
             }
 
@@ -6621,15 +6623,15 @@ if (typeof mxVertexHandler != 'undefined') {
         mxRubberband.prototype.defaultOpacity = 30;
 
         // Enables connections along the outline, virtual waypoints, parent highlight etc
-        mxConnectionHandler.prototype.outlineConnect = true;
+        mxConnectionHandler.prototype.outlineConnect = false;
         mxCellHighlight.prototype.keepOnTop = true;
         mxVertexHandler.prototype.parentHighlightEnabled = true;
         mxVertexHandler.prototype.rotationHandleVSpacing = -20;
 
-        mxEdgeHandler.prototype.parentHighlightEnabled = true;
+        mxEdgeHandler.prototype.parentHighlightEnabled = false;
         mxEdgeHandler.prototype.dblClickRemoveEnabled = true;
         mxEdgeHandler.prototype.straightRemoveEnabled = true;
-        mxEdgeHandler.prototype.virtualBendsEnabled = true;
+        mxEdgeHandler.prototype.virtualBendsEnabled = false;
         mxEdgeHandler.prototype.mergeRemoveEnabled = true;
         mxEdgeHandler.prototype.manageLabelHandle = true;
         mxEdgeHandler.prototype.outlineConnect = true;
@@ -6873,6 +6875,7 @@ if (typeof mxVertexHandler != 'undefined') {
         var mxEdgeHandlerUpdatePreviewState = mxEdgeHandler.prototype.updatePreviewState;
 
         mxEdgeHandler.prototype.updatePreviewState = function (edge, point, terminalState, me) {
+
             mxEdgeHandlerUpdatePreviewState.apply(this, arguments);
 
             if (terminalState != this.currentTerminalState) {
@@ -6996,6 +6999,7 @@ if (typeof mxVertexHandler != 'undefined') {
 
         // Invokes turn on single click on rotation handle
         mxVertexHandler.prototype.rotateClick = function () {
+            return;
             this.state.view.graph.turnShapes([this.state.cell]);
         };
 
@@ -7170,6 +7174,8 @@ if (typeof mxVertexHandler != 'undefined') {
             });
 
             this.selectionHandler = mxUtils.bind(this, function (sender, evt) {
+            console.log('selectionHandler')
+
                 update();
             });
 
@@ -7198,7 +7204,6 @@ if (typeof mxVertexHandler != 'undefined') {
 
         mxConnectionHandler.prototype.init = function () {
             connectionHandlerInit.apply(this, arguments);
-
             this.constraintHandler.isEnabled = mxUtils.bind(this, function () {
                 return this.graph.connectionHandler.isEnabled();
             });
@@ -7292,7 +7297,6 @@ if (typeof mxVertexHandler != 'undefined') {
         var edgeHandlerReset = mxEdgeHandler.prototype.reset;
         mxEdgeHandler.prototype.reset = function () {
             edgeHandlerReset.apply(this, arguments);
-
             if (this.linkHint != null) {
                 this.linkHint.style.visibility = '';
             }

@@ -117,13 +117,6 @@ export default {
     overflow: auto;
   }
 }
-
-.el-btn-create_table {
-  width: 100%;
-  line-height: 1;
-  padding: 7px 0;
-  margin: 10px 0;
-}
 .tool-create_table {
   li.divider {
     margin: 5px 0;

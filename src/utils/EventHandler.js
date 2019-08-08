@@ -1,5 +1,5 @@
 // 阻止在colorpicker上的 mousedown事件
-bindEventPrevent()
+bindEventPrevent();
 function bindEventPrevent() {
   document.addEventListener('mousedown', preventMouseDown);
 }
