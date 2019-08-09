@@ -1,6 +1,6 @@
 <template>
-  <div class="add">
-    <div class="add-btn">
+  <div class="wrap">
+    <div class="add-btn" @click="addPage">
      添加页面
     </div>
   </div>
@@ -8,12 +8,16 @@
 
 <script>
   export default {
-    
+    methods:{
+      addPage(){
+        this.$bus.$emit('addXml')
+      }
+    }
   }
 </script>
 
 <style lang="scss" scoped>
-.add{
+.wrap{
   position: absolute;
   top: 0;
   left: 0;

@@ -56,7 +56,6 @@ let Graph = function (id,xml,container, model, renderHint, stylesheet, themes, m
     mxGraph.call(this, container, model, renderHint, stylesheet);
     this.id=id;
     this.themes = themes || this.defaultThemes;
-    console.log(this.themes);
     this.container = container;
     this.myEditor = myEditor;
     this.myXml = xml;
@@ -105,6 +104,7 @@ let Graph = function (id,xml,container, model, renderHint, stylesheet, themes, m
     };
 
     // // Implements a listener for hover and click handling on edges
+    // console.log(this.edgeMode);
     // if (this.edgeMode) {
     //     var start = {
     //         point: null,
@@ -6015,6 +6015,7 @@ if (typeof mxVertexHandler != 'undefined') {
             var parent = this.graph.getModel().getParent(cell);
             var geo = this.graph.getCellGeometry(cell);
 
+            console.log('startEditing');
             this.graph.myEditor.keyHandler.setEnabled(false);
 
             if ((this.graph.getModel().isEdge(parent) && geo != null && geo.relative) ||
@@ -6326,6 +6327,7 @@ if (typeof mxVertexHandler != 'undefined') {
 
             // Tries to move focus back to container after editing if possible
             this.focusContainer();
+            console.log('stopEditing')
             this.graph.myEditor.keyHandler.setEnabled(true);
             this.graph.myEditor.$bus.$emit('updateToolBarStates', 'stopEditing');
         };
@@ -6402,7 +6404,6 @@ if (typeof mxVertexHandler != 'undefined') {
             hint.className = 'geHint';
             hint.style.whiteSpace = 'nowrap';
             hint.style.position = 'absolute';
-            console.log('createHint');
             return hint;
         };
 
@@ -6412,7 +6413,7 @@ if (typeof mxVertexHandler != 'undefined') {
         mxGraphHandler.prototype.updateHint = function (me) {
             if (this.shape != null) {
                 if (this.hint == null) {
-                    this.hint = createHint();
+                    this.hint = createHint(this.graph);
                     this.graph.container.appendChild(this.hint);
                 }
 
@@ -6484,7 +6485,7 @@ if (typeof mxVertexHandler != 'undefined') {
         mxVertexHandler.prototype.updateHint = function (me) {
             if (this.index != mxEvent.LABEL_HANDLE) {
                 if (this.hint == null) {
-                    this.hint = createHint();
+                    this.hint = createHint(this.graph);
                     this.state.view.graph.container.appendChild(this.hint);
                 }
 
@@ -6527,7 +6528,7 @@ if (typeof mxVertexHandler != 'undefined') {
          */
         mxEdgeHandler.prototype.updateHint = function (me, point) {
             if (this.hint == null) {
-                this.hint = createHint();
+                this.hint = createHint(this.graph);
                 this.state.view.graph.container.appendChild(this.hint);
             }
 
@@ -7091,7 +7092,7 @@ if (typeof mxVertexHandler != 'undefined') {
                 }
             } else if (link != null || (links != null && links.length > 0)) {
                 if (this.linkHint == null) {
-                    this.linkHint = createHint();
+                    this.linkHint = createHint(this.graph);
                     this.linkHint.style.padding = '6px 8px 6px 8px';
                     this.linkHint.style.opacity = '1';
                     this.linkHint.style.filter = '';

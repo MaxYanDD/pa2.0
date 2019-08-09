@@ -189,3 +189,16 @@ foreignObject table {
     height: 100%;
   }
 }
+
+.thumb-list{
+  .el-scrollbar{
+    height: 100%;
+  }
+  .el-scrollbar__wrap{
+    overflow-y: auto;
+    overflow-x:hidden;
+  }
+}
+.menu-override-thumb{
+  font-size: 14px;
+}

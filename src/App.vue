@@ -6,11 +6,11 @@
     </div>
     <div class="content">
       <div class="content-left" @click="stopEditing">
-        <AddPage />
+        <pageMenu />
         <ThumbList :activeIndex="activeIndex" :xmls="data.xmls" />
       </div>
       <div class="content-right">
-        <PageList :activeIndex="activeIndex" :xmls="data.xmls" />
+        <PageList :activeXmlId="activeXmlId" :activeIndex="activeIndex" :xmls="data.xmls" />
       </div>
     </div>
   </div>
@@ -22,7 +22,7 @@ import ProjectTopBar from './view/ProjectTopBar';
 import ThumbList from './view/ThumbList';
 import ToolsBar from './view/ToolsBar';
 import PageList from './view/PageList';
-import AddPage from './components/AddPage'
+import pageMenu from './components/pageMenu';
 import { getUrlParams } from '@/utils/utils';
 import { httpGet, httpPost } from '@/utils/request';
 
@@ -57,6 +57,7 @@ export default {
         time: ''
       },
       activeIndex: 0,
+      activeXmlId: 0,
       user: {
         name: '',
         avatar: '',
@@ -69,33 +70,49 @@ export default {
     ThumbList,
     ToolsBar,
     PageList,
-    AddPage
+    pageMenu
   },
   created() {
     this.getUserInfo();
+
     let id = getUrlParams()['id'] || '729e8d660876';
+
     if (id) {
       this.getData(id);
-    }else {
-      this.project.id= -1;
+    } else {
+      this.project.id = -1;
     }
 
-    this.$bus.$on('changeActive', (id, index) => {
-      this.stopEditing();
-      this.activeIndex = index;
-      this.$Editor.switchGraph(id);
-    });
+    this.$bus.$on('changeActive', this.changeActive);
     this.$bus.$on('save', this.saveAll);
+    this.$bus.$on('addXml', this.addXml);
+    this.$bus.$on('changePageTitle', this.changePageTitle);
+    this.$bus.$on('deleteActiveXml', this.deleteActiveXml);
   },
   mounted() {
     window.addEventListener('DOMMouseScroll', this.handleScroll, true); //TODO 无效
   },
   methods: {
+    // 清除编辑状态
     stopEditing() {
       this.$Editor.activeGraph.stopEditing();
       this.$Editor.activeGraph.getSelectionModel().clear(); // 清除cell选中状态
       this.$bus.$emit('updateToolBarStates', 'changeActive'); // 更新toolbars状态
     },
+
+    // 切换page
+    changeActive(index) {
+      console.log(index);
+      this.stopEditing();
+      this.activeIndex = index * 1;
+      this.activeXmlId = this.$Editor.switchGraph(index);
+    },
+
+    changePageTitle(val) {
+      this.data.xmls[this.activeIndex].title = val;
+    },
+
+    // 保存所有页面
     async saveAll() {
       this.stopEditing();
       this.data.xmls.forEach((xml, index) => {
@@ -110,7 +127,6 @@ export default {
 
       try {
         const ret = await httpPost('/api/edit/saveData', params);
-        console.log(ret.data);
         if (ret.state == 1) {
           this.project.id = ret.content.id;
           this.$message({ message: '保存成功', type: 'success' });
@@ -119,8 +135,10 @@ export default {
         console.log(err);
       }
     },
+
+    // 保存指定页
     savePage(index) {
-      let xml = this.Data.xmls[index];
+      let xml = this.data.xmls[index];
       let graphs = this.$Editor.graphs;
       let graph = null;
       for (let i = 0; i < graphs.length; i++) {
@@ -130,19 +148,23 @@ export default {
         }
       }
       xml.xml = this.$Editor.getGraphXml(graph);
-      console.log(xml.xml);
     },
+
+    // 处理滚轮事件
     handleScroll(e) {
       console.log(e);
     },
+
+    // 根据id请求page数据
     async getData(id) {
       try {
         const ret = await httpGet(`/api/edit/getData?id=${id}`);
-        console.log(ret);
         if (ret.state == 1) {
           const { project, data } = ret.content;
           this.project = project;
           this.data = data;
+          this.activeXmlId = this.data.xmls[0].id * 1;
+
           this.$nextTick(() => {
             this.$bus.$emit('reload');
           });
@@ -150,6 +172,8 @@ export default {
         //TODO如果有localstorage，对比data中的time,如果localstorage中的时间更晚，弹窗提示，是否替换现有的。
       } catch (err) {}
     },
+
+    // 获取用户信息
     async getUserInfo() {
       try {
         const ret = await httpGet('/api/user/info');
@@ -159,6 +183,43 @@ export default {
           window.location.href = '/login?forward=' + encodeURIComponent(window.location.href);
         }
       } catch (err) {}
+    },
+
+    // 插入新增页xml
+    addXml() {
+      let id = this.getMaxXmlId() + 1;
+      let title = '新建页面';
+      let xml = '';
+      this.data.xmls.splice(this.activeIndex + 1, 0, { id, title, xml });
+      this.$nextTick(() => {
+        this.$bus.$emit('addPage', id, xml, this.activeIndex + 1);
+      });
+    },
+    // 获取最大的xmlId
+    getMaxXmlId() {
+      let max = 0;
+      this.data.xmls.forEach(xml => {
+        if (xml.id * 1 > max) {
+          max = xml.id * 1;
+        }
+      });
+      return max;
+    },
+
+    // 删除当前页面
+    deleteActiveXml() {
+      this.data.xmls.splice(this.activeIndex, 1);
+      if(this.data.xmls.length == 1){
+        this.activeIndex = 0;
+      }
+      this.activeXmlId = this.activeIndex;
+      this.data.xmls.forEach((xml, index) => {
+        //修改对应xml的id
+        xml.id = index;
+      });
+       this.$nextTick(() => {
+           this.$bus.$emit('reload');
+      });
     }
   }
 };
@@ -199,7 +260,7 @@ export default {
   left: 0;
   width: 240px;
   border-right: 1px solid #dae1e7;
-  overflow: auto;
+  overflow: hidden;
   background-color: #fcfcfc;
 }
 
@@ -210,6 +271,6 @@ export default {
   bottom: 0;
   left: 240px;
   overflow: auto;
-  background-color:rgb(242, 242, 242)
+  background-color: rgb(242, 242, 242);
 }
 </style>

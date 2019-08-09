@@ -1,5 +1,5 @@
 <template>
-  <div class="thumb-list">
+  <div class="thumb-list" v-contextmenu:contextmenu @contextmenu="handleContextMenu">
     <el-scrollbar>
       <div
         class="thumb-item"
@@ -7,15 +7,23 @@
         :key="xml.id"
         :class="{active: (index == activeIndex)}"
       >
-        <span class="index">{{xml.id*1 + 1}}</span>
-        <div class="thumb-box" @click="changeActive(xml.id,index)">
+        <span class="index">{{index*1 + 1}}</span>
+        <div class="thumb-box" @click="changeActive(index)" @contextmenu.prevent="changeActive(index)">
           <figure></figure>
           <div class="thumb-name">
-            <p>{{xml.title}}</p>
+            <input :value="xml.title" @input="changePageTitle($event)" />
           </div>
         </div>
       </div>
     </el-scrollbar>
+
+
+    <v-contextmenu ref="contextmenu" class="menu-override-thumb">
+      <v-contextmenu-item @click="(e) => this.$bus.$emit('deleteActiveXml')">
+        删除
+      </v-contextmenu-item>
+    </v-contextmenu>
+
   </div>
 </template>
 
@@ -31,22 +39,17 @@ export default {
     }
   },
   methods: {
-    changeActive(id, index) {
-      this.$bus.$emit('changeActive', id, index);
+    changeActive(index) {
+      this.$bus.$emit('changeActive', index);
     },
-    scrollFunc(e) {
-      var direct = 0;
-      console.log(e);
-      var t1 = document.getElementById('wheelDelta');
-      var t2 = document.getElementById('detail');
-      if (e.wheelDelta) {
-        //IE/Opera/Chrome
-        t1.value = e.wheelDelta;
-      } else if (e.detail) {
-        //Firefox
-        t2.value = e.detail;
+    changePageTitle(e){
+      this.$bus.$emit('changePageTitle', e.target.value)
+    },
+    handleContextMenu(e){
+      if(!e.target.classList.contains('thumb-box')){
+        console.log('hide');
+        this.$refs.contextmenu.hide();
       }
-      ScrollText(direct);
     }
   }
 };
@@ -56,12 +59,12 @@ export default {
 .thumb-list {
   height: 100%;
   padding-top: 54px;
+  overflow-y: hidden;
   .thumb-item {
     display: flex;
     justify-content: flex-end;
     width: 205px;
     margin: 20px 0;
-
     .index {
       margin-right: 6px;
       color: #202124;
@@ -84,11 +87,16 @@ export default {
       height: 22px;
       margin: 0 1px 1px;
       background-color: rgba(230, 230, 230, 0.9);
-      p {
+      input {
+        display: block;
+        width: 100%;
+        background-color: transparent;
         text-align: center;
         line-height: 22px;
         font-size: 12px;
         color: #606f7b;
+        outline: none;
+        border: none;
       }
     }
     &.active {

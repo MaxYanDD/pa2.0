@@ -591,6 +591,7 @@ export default {
     },
     insertImage() {
       this.$Editor.keyHandler.setEnabled(false);
+      console.log(this.$Editor.keyHandler.isEnabled())
       this.$prompt('请输入图片链接', '插入图片', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',

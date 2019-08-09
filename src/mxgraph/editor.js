@@ -4,23 +4,30 @@ const { mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxTe
 
 function Editor(bus) {
   this.$bus = bus;
+  this.activeGraph = null;
 }
 
 /**
  * 编辑器初始化
  */
 Editor.prototype.init = function(graphs, id) {
-  this.graphs = graphs;
-  this.activeGraph = this.graphs[id];
+  this.loadGraphs(graphs,id)
+  // 绑定键盘事件
+  this.keyHandler = this.bindKeyHandler();
+};
 
+Editor.prototype.loadGraphs = function(graphs,id){
+  this.graphs = graphs;
+  this.switchGraph(id);
   //创建事务管理
   this.undoManager = this.createUndoManager();
+
   this.graphs.map(graph => {
     graph.getSelectionModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
     graph.getModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
-    graph.addListener('cellsInserted', (sender, evt) => {
-      this.insertHandler(evt.getProperty('cells'));
-    });
+    // graph.addListener('cellsInserted', (sender, evt) => {
+    //   this.insertHandler(evt.getProperty('cells'));
+    // });
     // TODO styleChanged 有什么用？
     // graph.addListener('styleChanged', (sender, evt) => {
     //   this.styleChanged(evt)
@@ -28,28 +35,41 @@ Editor.prototype.init = function(graphs, id) {
     if(graph.myXml){
       this.loadGraphXml(graph.myXml, graph);
     }
+
   });
+}
 
-  //
-  mxEvent.addListener(
-    document.querySelector('.page-list'),
-    'keydown',
-    mxUtils.bind(this, function(evt) {
-      this.onKeyDown(evt);
-    })
-  );
-  mxEvent.addListener(
-    document.querySelector('.page-list'),
-    'keypress',
-    mxUtils.bind(this, function(evt) {
-      this.onKeyPress(evt);
-    })
-  );
+Editor.prototype.addGraph = function(graph){
+  this.graphs.push(graph);
+  graph.getSelectionModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
+  graph.getModel().addListener(mxEvent.CHANGE, this.updateToolBarStates.bind(this));
+  if(graph.myXml){
+    this.loadGraphXml(graph.myXml, graph);
+  }
+}
+/**
+ * 切换画布
+ */
+Editor.prototype.switchGraph = function(id) {
+  // for (let i = 0; i < this.graphs.length; i++) {
+  //   if (this.graphs[i].id == id) {
+  //     this.activeGraph = this.graphs[id];
+  //     break;
+  //   }
+  // }
 
-  // 绑定键盘事件
-  this.keyHandler = this.bindKeyHandler();
+
+
+  for (let i = 0; i < this.graphs.length; i++) {
+    if (this.graphs[i].container.dataset.id == id) {
+      this.activeGraph = this.graphs[i];
+      break;
+    }
+  }
+
+  return this.activeGraph.id
+  
 };
-
 /**
  * createKeyHandler 绑定键盘事件
  */
@@ -85,16 +105,26 @@ Editor.prototype.undo = function() {
       if (value == graph.cellEditor.textarea.innerHTML) {
         // 如果文本框内没有文本
         graph.stopEditing(true);
-        this.undoManager.undo();
+        this.undoManager.undo(graph.id);
       }
     } else {
-      this.undoManager.undo();
+      this.undoManager.undo(graph.id);
     }
   } catch (e) {
     // ignore all errors
   }
 };
 
+Editor.prototype.getGraphById = function(id){
+  let graph;
+  for (let i = 0; i < this.graphs.length; i++) {
+    if (this.graphs[i].id == id) {
+      graph = this.graphs[id];
+      break;
+    }
+  }
+  return graph
+}
 /**
  * 重做
  */
@@ -105,7 +135,7 @@ Editor.prototype.redo = function() {
     if (graph.isEditing()) {
       document.execCommand('redo', false, null);
     } else {
-      this.undoManager.redo();
+      this.undoManager.redo(graph.id);
     }
   } catch (e) {
     // ignore all errors
@@ -116,11 +146,11 @@ Editor.prototype.redo = function() {
  * createUndoManager
  */
 Editor.prototype.createUndoManager = function() {
-  var graph = this.activeGraph;
-  var undoMgr = new mxUndoManager();
+  var undoMgr = new mxUndoManager(100,this);
 
   this.undoListener = function(sender, evt) {
-    undoMgr.undoableEditHappened(evt.getProperty('edit'));
+    evt.properties.edit.graphId = this.activeGraph.id;
+    undoMgr.undoableEditHappened(evt.getProperty('edit'));// 每次编辑都会把
   };
 
   // Installs the command history
@@ -128,13 +158,16 @@ Editor.prototype.createUndoManager = function() {
     this.undoListener.apply(this, arguments);
   });
 
-  graph.getModel().addListener(mxEvent.UNDO, listener);
-  graph.getView().addListener(mxEvent.UNDO, listener);
+  this.graphs.forEach(graph => {
+    graph.getModel().addListener(mxEvent.UNDO, listener);
+    graph.getView().addListener(mxEvent.UNDO, listener);
+  })
+
+  var graph = this.activeGraph;
 
   // Keeps the selection in sync with the history
   var undoHandler = function(sender, evt) {
     var cand = graph.getSelectionCellsForChanges(evt.getProperty('edit').changes);
-    var model = graph.getModel();
     var cells = [];
 
     for (var i = 0; i < cand.length; i++) {
@@ -151,6 +184,7 @@ Editor.prototype.createUndoManager = function() {
 
   return undoMgr;
 };
+
 
 /**
  * 删除mxcells;
@@ -316,12 +350,7 @@ Editor.prototype.onKeyPress = function(evt) {
   }
 };
 
-/**
- * 切换画布
- */
-Editor.prototype.switchGraph = function(id) {
-  this.activeGraph = this.graphs[id];
-};
+
 
 /**
  * 创建文本框
@@ -845,7 +874,7 @@ Editor.prototype.setLineHeight = function(value) {
   var selectedElement = graph.getSelectedElement();
   var node = selectedElement;
   var cells = graph.getSelectionCells();
-  console.log(graph.cellEditor);
+  console.log(node);
 
   while (node != null && node.nodeType != 1) {
     node = node.parentNode;
