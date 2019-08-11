@@ -6001,7 +6001,6 @@ if (typeof mxVertexHandler != 'undefined') {
                 this.textarea.className = 'mxCellEditor mxPlainTextEditor';
             }
 
-            console.log('startEditing');
             // Toggles markup vs wysiwyg mode
             this.codeViewMode = false;
 
@@ -6015,7 +6014,7 @@ if (typeof mxVertexHandler != 'undefined') {
             var parent = this.graph.getModel().getParent(cell);
             var geo = this.graph.getCellGeometry(cell);
 
-            console.log('startEditing');
+            
             this.graph.myEditor.keyHandler.setEnabled(false);
 
             if ((this.graph.getModel().isEdge(parent) && geo != null && geo.relative) ||
@@ -6327,7 +6326,6 @@ if (typeof mxVertexHandler != 'undefined') {
 
             // Tries to move focus back to container after editing if possible
             this.focusContainer();
-            console.log('stopEditing')
             this.graph.myEditor.keyHandler.setEnabled(true);
             this.graph.myEditor.$bus.$emit('updateToolBarStates', 'stopEditing');
         };

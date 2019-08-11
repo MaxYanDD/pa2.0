@@ -119,7 +119,7 @@ export default {
     addPage(id, xml, index) {
       let graph = new Graph(id, xml, this.$refs[id][0], null, null, null, this.themes, this.$Editor);
       this.$Editor.addGraph(graph)
-      this.$bus.$emit('changeActive', id, index);
+      this.$bus.$emit('changeActive', index);
     },
 
     // 隐藏右键菜单
@@ -146,7 +146,6 @@ export default {
     },
 
     wheelHandler(e){
-      console.log(e);
       if(e.wheelDelta < 0){
         this.$bus.$emit('changeActive', this.activeIndex+1 > this.xmls.length-1 ? this.xmls.length-1 : this.activeIndex+1)
       }else {

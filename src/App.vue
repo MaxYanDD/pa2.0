@@ -5,6 +5,7 @@
       <ToolsBar />
     </div>
     <div class="content">
+      <!-- 左侧 -->
       <div class="content-left" @click="stopEditing">
         <pageMenu />
         <ThumbList :activeIndex="activeIndex" :xmls="data.xmls" />
@@ -17,7 +18,6 @@
 </template>
 
 <script>
-// import main from './mxgraph'
 import ProjectTopBar from './view/ProjectTopBar';
 import ThumbList from './view/ThumbList';
 import ToolsBar from './view/ToolsBar';
@@ -102,12 +102,12 @@ export default {
 
     // 切换page
     changeActive(index) {
-      console.log(index);
       this.stopEditing();
       this.activeIndex = index * 1;
       this.activeXmlId = this.$Editor.switchGraph(index);
     },
 
+    // 改变当前页面标题
     changePageTitle(val) {
       this.data.xmls[this.activeIndex].title = val;
     },
@@ -118,7 +118,6 @@ export default {
       this.data.xmls.forEach((xml, index) => {
         this.savePage(index);
       });
-      this.data.pages = this.$Editor.createSvgStr();
 
       let params = {
         project: this.project,
@@ -139,20 +138,9 @@ export default {
     // 保存指定页
     savePage(index) {
       let xml = this.data.xmls[index];
-      let graphs = this.$Editor.graphs;
-      let graph = null;
-      for (let i = 0; i < graphs.length; i++) {
-        if (graphs[i].id == xml.id) {
-          graph = graphs[i];
-          break;
-        }
-      }
+      let graph = this.$Editor.findGraphByIndex(index)
       xml.xml = this.$Editor.getGraphXml(graph);
-    },
-
-    // 处理滚轮事件
-    handleScroll(e) {
-      console.log(e);
+      this.data.pages[index] = this.$Editor.createSvgStr(graph)
     },
 
     // 根据id请求page数据
@@ -208,25 +196,35 @@ export default {
 
     // 删除当前页面
     deleteActiveXml() {
-      this.data.xmls.splice(this.activeIndex, 1);
-      if(this.data.xmls.length == 1){
-        this.activeIndex = 0;
+      //TODO需要提供回退功能
+      const xmls = this.data.xmls;
+      const len = xmls.length;
+
+      if(len == 1){
+        return;
       }
-      this.activeXmlId = this.activeIndex;
-      this.data.xmls.forEach((xml, index) => {
-        //修改对应xml的id
-        xml.id = index;
-      });
-       this.$nextTick(() => {
-           this.$bus.$emit('reload');
-      });
+
+      // 删除对应的数据和graph实例
+      xmls.splice(this.activeIndex, 1);
+      this.$Editor.deleteGraph(this.activeIndex);
+
+      // 边界
+      if(xmls.length == 1){
+        this.activeIndex = 0;
+      }else if(this.activeIndex == len-1){
+        this.activeIndex = xmls.length -1;
+      }
+
+      this.$nextTick(() => {
+        this.changeActive(this.activeIndex)
+      })
     }
   }
 };
 </script>
 
 <style lang='scss'>
-@import './assets/sass/global.scss';
+@import "./assets/sass/global.scss";
 
 #app {
   position: absolute;
