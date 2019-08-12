@@ -85,7 +85,7 @@
     </ToolTip>
     <ToolTip class="tool-item" content="字体颜色">
       <a onmousedown="event.preventDefault();">
-        <i class="iconfont icon-zimua"></i>
+        <i class="iconfont icon-Font-color"></i>
         <div class="pickerbox">
           <el-color-picker
             v-model="currentShapeStyle.fontColor"

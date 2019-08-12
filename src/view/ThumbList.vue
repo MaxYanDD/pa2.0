@@ -5,11 +5,16 @@
         class="thumb-item"
         v-for="(xml,index) in xmls"
         :key="xml.id"
+        :ref="index"
         :class="{active: (index == activeIndex)}"
       >
         <span class="index">{{index*1 + 1}}</span>
-        <div class="thumb-box" @click="changeActive(index)" @contextmenu.prevent="changeActive(index)">
-          <figure></figure>
+        <div
+          class="thumb-box"
+          @click="changeActive(index)"
+          @contextmenu.prevent="changeActive(index)"
+        >
+          <svg class="thumb-svg"></svg>
           <div class="thumb-name">
             <input :value="xml.title" @input="changePageTitle($event)" />
           </div>
@@ -17,13 +22,10 @@
       </div>
     </el-scrollbar>
 
-
     <v-contextmenu ref="contextmenu" class="menu-override-thumb">
-      <v-contextmenu-item @click="(e) => this.$bus.$emit('deleteActiveXml')">
-        删除
-      </v-contextmenu-item>
+      <v-contextmenu-item @click="(e) => this.$bus.$emit('addXml')">新建页面</v-contextmenu-item>
+      <v-contextmenu-item @click="(e) => this.$bus.$emit('deleteActiveXml')">删除页面</v-contextmenu-item>
     </v-contextmenu>
-
   </div>
 </template>
 
@@ -38,19 +40,38 @@ export default {
       default: 0
     }
   },
+  created() {
+    this.$bus.$on('modelChange', this.reflashThumb);
+    this.$bus.$on('drawThumb', this.drawThumb)
+  },
   methods: {
     changeActive(index) {
       this.$bus.$emit('changeActive', index);
     },
-    changePageTitle(e){
-      this.$bus.$emit('changePageTitle', e.target.value)
+    changePageTitle(e) {
+      this.$bus.$emit('changePageTitle', e.target.value);
     },
-    handleContextMenu(e){
-      if(!e.target.classList.contains('thumb-box')){
-        console.log('hide');
+    handleContextMenu(e) {
+      if (!e.target.classList.contains('thumb-box')) {
         this.$refs.contextmenu.hide();
       }
+    },
+    //刷新缩略图
+    reflashThumb(){
+
+    },
+    // 生成缩略图
+    drawThumb(){
+      let drawPane = view.getDrawPane();
+      this.$Editor.graphs.forEach(graph => {
+          let drawPane = graph.getView().getDrawPane();
+          let index = graph.container.dataset.id;
+          this.refs[index][0].appendChild(drawPane)
+      });
+
     }
+  },
+  mounted(){
   }
 };
 </script>
@@ -58,7 +79,7 @@ export default {
 <style lang="scss" scoped>
 .thumb-list {
   height: 100%;
-  padding-top: 54px;
+  // padding-top: 54px;
   overflow-y: hidden;
   .thumb-item {
     display: flex;
@@ -73,7 +94,8 @@ export default {
       box-sizing: content-box;
       width: 149.333px;
       border: 1px solid #dae1e7;
-      figure {
+      .thumb-svg {
+        width: 100%;
         background-color: #fff;
         height: 84px;
       }

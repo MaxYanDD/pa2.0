@@ -1,11 +1,11 @@
 <template>
   <div class="toolsbar" @mousedown.prevent>
     <ToolTip content="保存" class="tool-item">
-      <a @click="save">
+      <a @click="()=>{this.$bus.$emit('save')}">
         <i class="iconfont icon-baocun"></i>
       </a>
     </ToolTip>
-    <ToolTip class="tool-item" content="打印">
+    <ToolTip class="tool-item" content="打印(待开发)">
       <a @click="()=>this.$Editor.preview()">
         <i class="iconfont icon-dayin"></i>
       </a>
@@ -101,7 +101,7 @@
       :append-to-body="true"
       class="el-dialog-override"
     >
-      <TableEditor @close="() => this.dialogTableVisible = !this.dialogTableVisible"/>
+      <TableEditor @close="() => this.dialogTableVisible = !this.dialogTableVisible" />
     </el-dialog>
 
     <div class="toolbar-separator"></div>
@@ -188,12 +188,12 @@
         </el-select>
       </ToolTip>
       <div class="toolbar-separator" v-show="!isContentEditing"></div>
-      <ToolTip class="tool-item" content="粗体"  v-show="isContentEditing">
+      <ToolTip class="tool-item" content="粗体" v-show="isContentEditing">
         <a onmousedown="event.preventDefault();" @click="()=> this.$Editor.toggleFontStyle('bold')">
           <i class="iconfont icon-font-weight"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="斜体"  v-show="isContentEditing">
+      <ToolTip class="tool-item" content="斜体" v-show="isContentEditing">
         <a
           onmousedown="event.preventDefault();"
           @click="() => this.$Editor.toggleFontStyle('italic')"
@@ -201,14 +201,14 @@
           <i class="iconfont icon-Italic"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="下划线"  v-show="isContentEditing">
+      <ToolTip class="tool-item" content="下划线" v-show="isContentEditing">
         <a @click="() => this.$Editor.toggleFontStyle('underline')">
           <i class="iconfont icon-Underline"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="字体颜色"  v-show="isContentEditing">
+      <ToolTip class="tool-item" content="字体颜色" v-show="isContentEditing">
         <a onmousedown="event.preventDefault();">
-          <i class="iconfont icon-zimua"></i>
+          <i class="iconfont icon-Font-color"></i>
           <div class="pickerbox">
             <el-color-picker
               v-model="currentShapeStyle.fontColor"
@@ -414,7 +414,7 @@ export default {
           label: 'Verdana'
         }
       ],
-      fontSizeList: [8,9,10,11,12,14,16,18,20,24,28,32,36,40,44,48,54,60,66,72,80,88,96],
+      fontSizeList: [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48, 54, 60, 66, 72, 80, 88, 96],
       strokeWidthList: [
         {
           value: 1,
@@ -516,19 +516,19 @@ export default {
       if (!state) {
         this.currentshape = '';
         return;
-      } else if(state == 'stopEditing') {
+      } else if (state == 'stopEditing') {
         this.isContentEditing = false;
         return;
-      } else if(state == 'changeActive') {
+      } else if (state == 'changeActive') {
         this.currentshape = '';
-        return
+        return;
       }
 
       // 是否处于双击状态
-      if(this.$Editor.activeGraph.cellEditor.isContentEditing()){
-        this.isContentEditing = true
+      if (this.$Editor.activeGraph.cellEditor.isContentEditing()) {
+        this.isContentEditing = true;
       } else {
-        this.isContentEditing = false
+        this.isContentEditing = false;
       }
 
       const { shape, text, style } = state;
@@ -537,12 +537,12 @@ export default {
 
       // 获取选中mxCell的样式
       this.currentshape = style.shape;
-      
+
       if (style.shape == 'label') {
         this.currentShapeStyle.strokeColor = stroke || '#fff';
         this.oldStyle.strokeColor = stroke;
-        if(/^\<table/.test(state.cell.value)){
-          this.currentshape = 'table'
+        if (/^\<table/.test(state.cell.value)) {
+          this.currentshape = 'table';
         }
       } else if (style.shape == 'image') {
         this.oldStyle.imgBorderColor = imageBorder;
@@ -556,7 +556,6 @@ export default {
       this.currentShapeStyle.fontColor = fontColor || '#fff';
       this.currentShapeStyle.fontFamily = fontFamily || 'Arial';
       this.currentShapeStyle.fontSize = fontSize || 16;
-
     },
     changeStyle(style, value) {
       // 设置边框宽度，给定一个默认边框颜色
@@ -585,53 +584,32 @@ export default {
       this.$Editor.changeStyle(style, value);
     },
     toggleFontStyle(e, style) {
-      // e.stopPropagation();
-      // e.preventDefault();
       this.$Editor.toggleFontStyle(style);
     },
-    insertImage() {
+    // 选择图片弹窗
+    selectImage(title) {
       this.$Editor.keyHandler.setEnabled(false);
-      console.log(this.$Editor.keyHandler.isEnabled())
-      this.$prompt('请输入图片链接', '插入图片', {
+      return this.$prompt('请输入图片链接', title, {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        inputPattern: /\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/,
+        inputPattern: /\.(gif|jpg|jpeg|png|GIF|JPG|PNG|svg|SVG)$/,
         inputErrorMessage: '图片链接'
       })
         .then(({ value }) => {
-          this.$Editor.insertImage(value);
           this.$Editor.keyHandler.setEnabled(true);
+          return value;
         })
         .catch(() => {
           this.$Editor.keyHandler.setEnabled(true);
         });
     },
-    changeImage() {
-      this.$prompt('请输入图片链接', '更换图片', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        inputPattern: /\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/,
-        inputErrorMessage: '图片链接'
-      })
-        .then(({ value }) => {
-          this.$Editor.changeImage(value);
-        })
-        .catch(() => {});
+    async insertImage() {
+      let value = await this.selectImage('插入图片');
+      this.$Editor.insertImage(value);
     },
-    createCostTable() {
-      return;
-      let style = 'text;html=1;strokeColor=#c0c0c0;fillColor=#ffffff;overflow=fill;rounded=0;';
-      let width = 200;
-      let height = 100;
-      let showLabel = null;
-      let allowCellsInserted = true;
-      let title = 'Table';
-
-      console.log(this.$Editor.activeGraph);
-      this.$Editor.createShape(style, width, height, value, title, showLabel, allowCellsInserted);
-    },
-    save(){
-      this.$bus.$emit('save');
+    async changeImage() {
+      let value = await this.selectImage('更换图片');
+      this.$Editor.changeImage(value);
     }
   },
   components: {

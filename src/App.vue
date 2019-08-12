@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" v-if="hasData">
     <div class="header">
       <ProjectTopBar :user="user" :project="project" />
       <ToolsBar />
@@ -7,7 +7,7 @@
     <div class="content">
       <!-- 左侧 -->
       <div class="content-left" @click="stopEditing">
-        <pageMenu />
+        <!-- <pageMenu /> -->
         <ThumbList :activeIndex="activeIndex" :xmls="data.xmls" />
       </div>
       <div class="content-right">
@@ -30,29 +30,23 @@ export default {
   name: 'App',
   data() {
     return {
+      hasData: false,
       project: {
         id: '',
-        title: '测试方案',
-        cover: 'images/2019/0708/68df3b5eab764b25ef62571ac6d329f6e239e2de.jpeg',
-        name: '测试方案',
-        number: 'test',
-        proprietor: 'test',
+        title: '',
+        cover: '',
+        name: '',
+        number: '',
+        proprietor: '',
         linkman: '',
         phone: '',
-        email: 'test@qq.com',
+        email: '',
         page_num: '',
-        remark: ''
+        remark: '',
+        template: 'custom'
       },
       data: {
-        xmls: [
-          {
-            id: 0,
-            title: '空白',
-            // xml:'<mxGraphModel dx="1102" dy="838" grid="0" gridSize="10" guides="1" tooltips="1" connect="0" arrows="0" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="16" value="" style="shape=image;imageAspect=0;aspect=aspect;verticalLabelPosition=bottom;verticalAlign=top;image=http://imgcache.eltmall.com/asst/business/img00.jpg;" vertex="1" parent="1"><mxGeometry x="173" y="112" width="709" height="501" as="geometry"/></mxCell><mxCell id="18" value="Text" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="234" y="139" width="210" height="105" as="geometry"/></mxCell></root></mxGraphModel>',
-            xml: `
-            <mxGraphModel dx="75" dy="29" grid="0" gridSize="10" guides="1" tooltips="0" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="742.5"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="6" value="双击可输入文本" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000;fontSize=66;" vertex="1" parent="1"><mxGeometry x="57.5" y="50" width="985" height="621" as="geometry"/></mxCell></root></mxGraphModel>`
-          }
-        ],
+        xmls: [],
         pages: [],
         time: ''
       },
@@ -73,14 +67,29 @@ export default {
     pageMenu
   },
   created() {
+    this.openLoading();
+
     this.getUserInfo();
 
     let id = getUrlParams()['id'] || '729e8d660876';
 
     if (id) {
-      this.getData(id);
+      this.getPageData(id);
     } else {
       this.project.id = -1;
+      this.hasData = true;
+      this.data.xmls.push({
+        id: 0,
+        title: '新建页面',
+        xml: `
+        <mxGraphModel dx="38" dy="36" grid="0" gridSize="10" guides="1" tooltips="0" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="778"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="2" value="欢迎使用云知光商城方案助手" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000;fontSize=66;" vertex="1" parent="1"><mxGeometry x="57.5" y="127" width="985" height="171" as="geometry"/></mxCell><mxCell id="4" value="" style="shape=image;imageAspect=0;aspect=aspect;verticalLabelPosition=bottom;verticalAlign=top;image=http://imgcache.eltmall.com/logo/eltmall.svg;" vertex="1" parent="1"><mxGeometry x="205" y="499" width="690" height="139" as="geometry"/></mxCell></root></mxGraphModel>`
+      });
+
+      this.$nextTick(() => {
+
+        this.loading.close();
+      });
+
     }
 
     this.$bus.$on('changeActive', this.changeActive);
@@ -89,9 +98,7 @@ export default {
     this.$bus.$on('changePageTitle', this.changePageTitle);
     this.$bus.$on('deleteActiveXml', this.deleteActiveXml);
   },
-  mounted() {
-    window.addEventListener('DOMMouseScroll', this.handleScroll, true); //TODO 无效
-  },
+  mounted() {},
   methods: {
     // 清除编辑状态
     stopEditing() {
@@ -138,13 +145,19 @@ export default {
     // 保存指定页
     savePage(index) {
       let xml = this.data.xmls[index];
-      let graph = this.$Editor.findGraphByIndex(index)
+      let graph = this.$Editor.findGraphByIndex(index);
+
+      var view = graph.getView();
+      var canvas = view.getCanvas();
+
+      console.log(canvas);
       xml.xml = this.$Editor.getGraphXml(graph);
-      this.data.pages[index] = this.$Editor.createSvgStr(graph)
+      console.log(xml.xml);
+      this.data.pages[index] = this.$Editor.createSvgStr(graph);
     },
 
     // 根据id请求page数据
-    async getData(id) {
+    async getPageData(id) {
       try {
         const ret = await httpGet(`/api/edit/getData?id=${id}`);
         if (ret.state == 1) {
@@ -152,9 +165,11 @@ export default {
           this.project = project;
           this.data = data;
           this.activeXmlId = this.data.xmls[0].id * 1;
-
+          this.setDocTitle(this.project.name);
+          this.hasData = true;
           this.$nextTick(() => {
             this.$bus.$emit('reload');
+            this.closeLoading();
           });
         }
         //TODO如果有localstorage，对比data中的time,如果localstorage中的时间更晚，弹窗提示，是否替换现有的。
@@ -173,12 +188,18 @@ export default {
       } catch (err) {}
     },
 
+    setDocTitle(title) {
+      if (title) {
+        document.title = title + '-云知光商城方案助手';
+      }
+    },
+
     // 插入新增页xml
     addXml() {
       let id = this.getMaxXmlId() + 1;
       let title = '新建页面';
       let xml = '';
-      this.data.xmls.splice(this.activeIndex + 1, 0, { id, title, xml });
+      this.data.xmls.splice(this.activeIndex * 1 + 1, 0, { id, title, xml });
       this.$nextTick(() => {
         this.$bus.$emit('addPage', id, xml, this.activeIndex + 1);
       });
@@ -200,7 +221,7 @@ export default {
       const xmls = this.data.xmls;
       const len = xmls.length;
 
-      if(len == 1){
+      if (len == 1) {
         return;
       }
 
@@ -209,22 +230,34 @@ export default {
       this.$Editor.deleteGraph(this.activeIndex);
 
       // 边界
-      if(xmls.length == 1){
+      if (xmls.length == 1) {
         this.activeIndex = 0;
-      }else if(this.activeIndex == len-1){
-        this.activeIndex = xmls.length -1;
+      } else if (this.activeIndex == len - 1) {
+        this.activeIndex = xmls.length - 1;
       }
 
       this.$nextTick(() => {
-        this.changeActive(this.activeIndex)
-      })
+        this.changeActive(this.activeIndex);
+      });
+    },
+
+    openLoading() {
+      this.loading = this.$loading({
+        lock: true,
+        text: '加载中...',
+        spinner: 'el-icon-loading',
+        background: '#fff'
+      });
+    },
+    closeLoading() {
+      this.loading.close();
     }
   }
 };
 </script>
 
 <style lang='scss'>
-@import "./assets/sass/global.scss";
+@import './assets/sass/global.scss';
 
 #app {
   position: absolute;

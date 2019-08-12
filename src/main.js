@@ -2,7 +2,7 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import App from './App'
-import { Dropdown,DropdownMenu,DropdownItem,Tooltip,ColorPicker,Select,Option,MessageBox,Message,Popover,Button,InputNumber,Dialog,Scrollbar } from 'element-ui'
+import { Loading, Dropdown,DropdownMenu,DropdownItem,Tooltip,ColorPicker,Select,Option,MessageBox,Message,Popover,Button,InputNumber,Dialog,Scrollbar } from 'element-ui'
 import './assets/css/reset.css'
 import 'font-awesome/css/font-awesome.min.css'
 import Editor from './mxgraph/editor'
@@ -33,10 +33,12 @@ Vue.use(Button);
 Vue.use(InputNumber);
 Vue.use(Dialog);
 Vue.use(Scrollbar);
+Vue.use(Loading);
 
 
 Vue.prototype.$prompt = MessageBox.prompt;
 Vue.prototype.$message  = Message;
+Vue.prototype.$loading = Loading.service;
 
 new Vue({
   el: '#app',
