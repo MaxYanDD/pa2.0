@@ -71,7 +71,7 @@ export default {
 
     this.getUserInfo();
 
-    let id = getUrlParams()['id'] || '729e8d660876';
+    let id = getUrlParams()['id'];
 
     if (id) {
       this.getPageData(id);
@@ -80,23 +80,23 @@ export default {
       this.hasData = true;
       this.data.xmls.push({
         id: 0,
-        title: '新建页面',
+        title: '首页',
         xml: `
         <mxGraphModel dx="38" dy="36" grid="0" gridSize="10" guides="1" tooltips="0" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="778"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="2" value="欢迎使用云知光商城方案助手" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000;fontSize=66;" vertex="1" parent="1"><mxGeometry x="57.5" y="127" width="985" height="171" as="geometry"/></mxCell><mxCell id="4" value="" style="shape=image;imageAspect=0;aspect=aspect;verticalLabelPosition=bottom;verticalAlign=top;image=http://imgcache.eltmall.com/logo/eltmall.svg;" vertex="1" parent="1"><mxGeometry x="205" y="499" width="690" height="139" as="geometry"/></mxCell></root></mxGraphModel>`
       });
 
       this.$nextTick(() => {
-
         this.loading.close();
       });
-
     }
 
     this.$bus.$on('changeActive', this.changeActive);
-    this.$bus.$on('save', this.saveAll);
+    this.$bus.$on('save', this.upload);
     this.$bus.$on('addXml', this.addXml);
     this.$bus.$on('changePageTitle', this.changePageTitle);
+    this.$bus.$on('changeProjectTitle', this.changeProjectTitle);
     this.$bus.$on('deleteActiveXml', this.deleteActiveXml);
+    this.$bus.$on('download', this.download);
   },
   mounted() {},
   methods: {
@@ -119,13 +119,42 @@ export default {
       this.data.xmls[this.activeIndex].title = val;
     },
 
-    // 保存所有页面
-    async saveAll() {
-      this.stopEditing();
-      this.data.xmls.forEach((xml, index) => {
-        this.savePage(index);
-      });
+    changeProjectTitle(val) {
+      this.project.title = val;
+    },
 
+    async download() {
+      if (!/\S{4,}/.test(this.project.title)) {
+        this.$message.error('方案名称必须大于4个字符');
+        return;
+      }
+   
+
+      this.saveAll();
+
+      let params = {
+        project: this.project,
+        data: this.data
+      };
+
+      try {
+        const ret = await httpPost('/api/edit/saveData', params);
+        if (ret.state == 1) {
+          this.project.id = ret.content.id;
+          window.open(`/view/download/${this.project.id}`)
+        } 
+      } catch (err) {
+         
+      }
+    },
+    async upload() {
+      // 校验方案名称
+      if (!/\S{4,}/.test(this.project.title)) {
+        this.$message.error('方案名称必须大于4个字符');
+        return;
+      }
+
+      this.saveAll();
       let params = {
         project: this.project,
         data: this.data
@@ -141,6 +170,14 @@ export default {
         console.log(err);
       }
     },
+    // 保存所有页面
+    saveAll() {
+      this.stopEditing();
+      this.data.pages = [];
+      this.data.xmls.forEach((xml, index) => {
+        this.savePage(index);
+      });
+    },
 
     // 保存指定页
     savePage(index) {
@@ -150,10 +187,8 @@ export default {
       var view = graph.getView();
       var canvas = view.getCanvas();
 
-      console.log(canvas);
       xml.xml = this.$Editor.getGraphXml(graph);
-      console.log(xml.xml);
-      this.data.pages[index] = this.$Editor.createSvgStr(graph);
+      this.data.pages.push(this.$Editor.createSvgStr(graph));
     },
 
     // 根据id请求page数据
@@ -182,9 +217,7 @@ export default {
         const ret = await httpGet('/api/user/info');
         if (ret.state == 1) {
           this.user = ret.content;
-        } else {
-          window.location.href = '/login?forward=' + encodeURIComponent(window.location.href);
-        }
+        } 
       } catch (err) {}
     },
 
@@ -301,7 +334,7 @@ export default {
   right: 0;
   bottom: 0;
   left: 240px;
-  overflow: auto;
+  overflow: hidden;
   background-color: rgb(242, 242, 242);
 }
 </style>

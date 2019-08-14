@@ -1,6 +1,6 @@
 import * as mxgraph from 'mxgraph';
-
-const { mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxTemporaryCellStates, mxResources, mxUtils, mxConstants, mxPoint, mxCodec, mxPrintPreview, mxUndoManager, mxClipboard, mxRectangle } = mxgraph();
+import _Graph  from './graph'
+const { mxGraph ,mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxTemporaryCellStates, mxResources, mxUtils, mxConstants, mxPoint, mxCodec, mxPrintPreview, mxUndoManager, mxClipboard, mxRectangle } = mxgraph();
 
 function Editor(bus) {
   this.$bus = bus;
@@ -17,7 +17,7 @@ Editor.prototype.init = function(graphs, id) {
 };
 
 /**
- * 加载graph实例
+ * 加载所有graph实例
  */
 Editor.prototype.loadGraphs = function(graphs, id) {
   this.graphs = graphs;
@@ -28,21 +28,24 @@ Editor.prototype.loadGraphs = function(graphs, id) {
 
   this.graphs.map(graph => {
     this.bindListener(graph);
-    if (graph.myXml) {
-      this.loadGraphXml(graph.myXml, graph);
+    if (graph._xml) {
+      this.loadGraphXml(graph._xml, graph);
     }
 
   });
   this.$bus.$emit('drawThumb')
 };
 
-/**
- * 生成缩略图
- */
-Editor.prototype.drawThumb = function(graph) {
-  let svg = document.createElement('svg');
 
-};
+/**
+ * 添加graph实例
+ */
+Editor.prototype.createGraph = function(xml,container){
+  if (container) {
+    container.innerHTML = '';
+    return new _Graph(xml.id * 1, xml.xml, container, null, null, null, this);
+  }
+}
 
 /**
  * 添加graph实例
@@ -51,24 +54,23 @@ Editor.prototype.addGraph = function(graph) {
   this.graphs.push(graph);
   this.bindListener(graph)
 
-  if (graph.myXml) {
-    this.loadGraphXml(graph.myXml, graph);
+  if (graph._xml) {
+    this.loadGraphXml(graph._xml, graph);
   }
 };
 
 Editor.prototype.bindListener = function(graph) {
-  let _this = this;
-  graph.getSelectionModel().addListener(mxEvent.CHANGE, this.selectionChange.bind(_this));
-  graph.getModel().addListener(mxEvent.CHANGE, this.modelChange.bind(_this));
+  graph.getSelectionModel().addListener(mxEvent.CHANGE, this.selectionChange.bind(this));
+  graph.getModel().addListener(mxEvent.CHANGE, this.modelChange.bind(this));
 
-  graph.getModel().addListener(mxEvent.UNDO, this.addToHistory.bind(_this));
-  graph.getView().addListener(mxEvent.UNDO, this.addToHistory.bind(_this));
+  graph.getModel().addListener(mxEvent.UNDO, this.addToHistory.bind(this));
+  graph.getView().addListener(mxEvent.UNDO, this.addToHistory.bind(this));
 };
 
 // mxCell发生变化触发
 Editor.prototype.modelChange = function() {
-  console.log('modelchange',arguments);
-  this.$bus.$emit('modelChange')
+  let index = this.activeGraph.container.dataset.id
+  this.$bus.$emit('modelChange',index)
 };
 
 // 将修改加入histoty中
@@ -797,7 +799,6 @@ Editor.prototype.insertHandler = function(cells, asText) {
             // Special case: Connect styles are not applied here but in the connection handler
             if (!edge || mxUtils.indexOf(connectStyles, key) < 0) {
               newStyle = mxUtils.setStyle(newStyle, key, styleValue);
-              console.log('here', key, styleValue);
             }
           }
         }
@@ -1135,32 +1136,30 @@ Editor.prototype.createPrintPreview = function(graph, scale, pf, border, x0, y0,
 };
 
 /**
- * 创建预览DOM节点列表
+ * 创建打印预览DOM节点列表
  */
 Editor.prototype.createSvgStr = function(graph) {
   var div = document.createElement('div');
   div.style.cssText = `
      overflow: hidden; break-inside: avoid; break-after: avoid;background:#fff;
-     width: 1100px;height:742.5px;transform: scale(1.45);transform-origin: 0 0;
+     width: 1595px;height:1127px;margin-top: 20px;
     `;
-  this.addGraphFragment(div, graph);
+  this.addGraphFragment(div, graph, 1.45);
 
   return div.outerHTML;
 };
 
-Editor.prototype.addGraphFragment = function(div, graph) {
-  var scale = 1;
+
+
+Editor.prototype.addGraphFragment = function(div,sourceGraph,scale) {
+  var graph = new _Graph(null,null,div, sourceGraph.getModel(), null, sourceGraph.getStylesheet());
+  div.innerHTML = '';
+
   var dx = 0;
   var dy = 0;
   var clip = graph.pageFormat;
   var view = graph.getView();
-  var previousContainer = graph.container;
   graph.container = div;
-
-  var canvas = view.getCanvas();
-  var backgroundPane = view.getBackgroundPane();
-  var drawPane = view.getDrawPane();
-  var overlayPane = view.getOverlayPane();
 
   if (graph.dialect == mxConstants.DIALECT_SVG) {
     view.createSvg();
@@ -1170,9 +1169,7 @@ Editor.prototype.addGraphFragment = function(div, graph) {
       var g = view.getDrawPane().parentNode;
       var prev = g.getAttribute('transform');
       g.setAttribute('transformOrigin', '0 0');
-      g.setAttribute('transform', 'scale(' + scale + ',' + scale + ')' + 'translate(' + dx + ',' + dy + ')');
 
-      scale = 1;
       dx = 0;
       dy = 0;
     }
@@ -1183,11 +1180,9 @@ Editor.prototype.addGraphFragment = function(div, graph) {
   }
 
   // Disables events on the view
-  var eventsEnabled = view.isEventsEnabled();
   view.setEventsEnabled(false);
 
   // Disables the graph to avoid cursors
-  var graphEnabled = graph.isEnabled();
   graph.setEnabled(false);
 
   // Resets the translation
@@ -1225,7 +1220,6 @@ Editor.prototype.addGraphFragment = function(div, graph) {
   }
 
   var temp = null;
-
   try {
     // Creates the temporary cell states in the view and
     // draws them onto the temporary DOM nodes in the view
@@ -1235,70 +1229,12 @@ Editor.prototype.addGraphFragment = function(div, graph) {
       scale,
       cells,
       null,
-      mxUtils.bind(this, function(state) {
-        return graph.getLinkForCell(state.cell);
-      })
+      null
     );
+    graph = null;
+
   } finally {
-    // Removes overlay pane with selection handles
-    // controls and icons from the print output
-    if (mxClient.IS_IE) {
-      view.overlayPane.innerHTML = '';
-      view.canvas.style.overflow = 'hidden';
-      view.canvas.style.position = 'relative';
-      view.canvas.style.top = this.marginTop + 'px';
-      view.canvas.style.width = clip.width + 'px';
-      view.canvas.style.height = clip.height + 'px';
-    } else {
-      // Removes everything but the SVG node
-      var tmp = div.firstChild;
 
-      while (tmp != null) {
-        var next = tmp.nextSibling;
-        var name = tmp.nodeName.toLowerCase();
-
-        // Note: Width and height are required in FF 11
-        if (name == 'svg') {
-          tmp.style.overflow = 'hidden';
-          tmp.style.position = 'relative';
-          tmp.style.top = this.marginTop + 'px';
-          tmp.setAttribute('width', clip.width);
-          tmp.setAttribute('height', clip.height);
-          tmp.style.width = '';
-          tmp.style.height = '';
-        }
-        // Tries to fetch all text labels and only text labels
-        else if (tmp.style.cursor != 'default' && name != 'div') {
-          tmp.parentNode.removeChild(tmp);
-        }
-
-        tmp = next;
-      }
-    }
-
-    // Puts background image behind SVG output
-    if (this.printBackgroundImage) {
-      var svgs = div.getElementsByTagName('svg');
-
-      if (svgs.length > 0) {
-        svgs[0].style.position = 'absolute';
-      }
-    }
-
-    // // Completely removes the overlay pane to remove more handles
-    // view.overlayPane.parentNode.removeChild(view.overlayPane);
-
-    // // Restores the state of the view
-    graph.setEnabled(graphEnabled);
-    graph.container = previousContainer;
-    graph.cellRenderer.redraw = redraw;
-    view.canvas = canvas;
-    view.backgroundPane = backgroundPane;
-    view.drawPane = drawPane;
-    view.overlayPane = overlayPane;
-    view.translate = translate;
-    temp.destroy();
-    view.setEventsEnabled(eventsEnabled);
   }
 };
 

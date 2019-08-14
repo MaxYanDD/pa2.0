@@ -2,8 +2,8 @@
   <div class="topbar">
     <div class="tb-left">
       <a class="back fa fa-angle-left" href="/" title="返回"></a>
-      <div class="project-info">
-        <span>{{project.name || '未命名方案'}}</span>
+      <div class="project-info" title="至少4个字符">
+         <input type="text" placeholder="未命名方案" :value="project.title" @input="changeProjectTitle($event)" />
         <i class="fa fa-edit"></i>
       </div>
       <div class="project-set">
@@ -20,7 +20,7 @@
       </div>
     </div>
     <div class="tb-right">
-      <a @click="download" class="download" :href="'/view/download/'+ project.id" target="_blank">下载</a>
+      <a @click="()=>this.$bus.$emit('download')" class="download" target="_blank">下载</a>
       <div class="user">
         <el-dropdown @command="handleCommand">
           <span class="el-dropdown-link">
@@ -71,6 +71,9 @@ export default {
     },
     download() {
       // TODO下载
+    },
+    changeProjectTitle(e){
+      this.$bus.$emit('changeProjectTitle',e.target.value)
     }
   }
 };
@@ -100,11 +103,16 @@ export default {
     }
 
     .project-info {
+      position: relative;
       height: 30px;
-      padding: 0 10px;
       cursor: pointer;
 
-      span {
+      input {
+        width: 150px;
+        padding: 0 25px 0 4px;
+        max-width: 300px;
+        border: 1px solid #fff;
+        outline: none;
         font-size: 16px;
         display: inline-block;
         line-height: 30px;
@@ -113,10 +121,16 @@ export default {
 
       i {
         font-size: 14px;
+        position: absolute;
+        top: 10px;
+        right: 8px;
+        cursor: default;
       }
 
       &:hover {
-        background-color: rgba(96, 111, 123, 0.2);
+        input {
+          border: 1px solid #ccc;
+        }
       }
     }
 

@@ -54,14 +54,13 @@
       :key="xml.id"
       :ref="xml.id"
       class="page-item"
-      :style="{display: (xml.id == activeXmlId ? 'block':'none')}"
+      v-show="xml.id == activeXmlId"
     />
   </div>
 </template>
 
 <script>
-import Graph from '../mxgraph/Graph';
-import themesXML from '../utils/themesXML';
+import Graph from '../mxgraph/graph';
 import Editor from '../mxgraph/editor';
 
 export default {
@@ -86,7 +85,6 @@ export default {
   },
   components: {},
   created() {
-    this.themes = themesXML();
     this.$bus.$on('reload', this.reload);
     this.$bus.$on('addPage', this.addPage);
     this.$bus.$on('disableContextMenu',this.disableContext)
@@ -95,11 +93,7 @@ export default {
     // 生成Graph实例数组
     createGraphs() {
       return this.xmls.map(xml => {
-        let container = this.$refs[xml.id][0];
-        if (container) {
-          container.innerHTML = '';
-        }
-        return new Graph(xml.id * 1, xml.xml, container, null, null, null, this.themes, this.$Editor);
+        return this.$Editor.createGraph(xml,this.$refs[xml.id][0])
       });
     },
 
@@ -117,7 +111,7 @@ export default {
 
     // 增加一页
     addPage(id, xml, index) {
-      let graph = new Graph(id, xml, this.$refs[id][0], null, null, null, this.themes, this.$Editor);
+      const graph = this.$Editor.createGraph({xml,id},this.$refs[id][0])
       this.$Editor.addGraph(graph)
       this.$bus.$emit('changeActive', index);
     },
@@ -165,7 +159,7 @@ export default {
   width: 100%;
   height: 100%;
   background-color: #f8f9fa;
-
+  overflow: hidden;
   .page-item {
     width: 100%;
     height: 100%;

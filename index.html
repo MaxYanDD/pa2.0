@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>云知光方案商城</title>
-    <link rel="stylesheet" href="//at.alicdn.com/t/font_1274999_ut1x8t3vgy.css" />
+    <title>云知光方案助手</title>
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_1274999_7hd1z2khw4a.css" />
     <script src="./static/sanitizer.min.js"></script>
   </head>
 
@@ -12,11 +12,12 @@
     <div id="app"></div>
     <!-- built files will be auto injected -->
     <script>
-      const returnValue = '确定离开此页面吗?';
       window.onbeforeunload = e => {
-        var dialogText = '确定离开?';
-        e.returnValue = dialogText;
-        return dialogText;
+        e = e || window.event;
+        if (e) {
+          e.returnValue = '关闭提示';
+        }
+        return '关闭提示';
       };
 
     </script>

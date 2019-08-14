@@ -24,7 +24,7 @@
     <div class="toolbar-separator"></div>
     <ToolTip class="tool-item" content="删除">
       <a @click="(e) => this.$Editor.deletCells(e)">
-        <i class="iconfont icon-shanchu"></i>
+        <i class="iconfont icon-lajixiang"></i>
       </a>
     </ToolTip>
     <div class="toolbar-separator"></div>
@@ -56,42 +56,6 @@
       <a @click="() => this.dialogTableVisible = !this.dialogTableVisible">
         <i class="iconfont icon-table"></i>
       </a>
-      <!-- <el-popover placement="bottom" width="200" trigger="click">
-        <ul class="tool-create_table">
-          <li>
-            <p @click="createCostTable">一键生成灯光造价估算表</p>
-          </li>
-          <li class="divider"></li>
-          <li>
-            <p>一键生成照明能耗估算表</p>
-          </li>
-          <li class="divider"></li>
-          <li style="padding-top: 5px">
-            <span>行:</span>
-            <el-input-number
-              class="el-input-number-override"
-              v-model="tableRow"
-              controls-position="right"
-              :min="1"
-              :max="100"
-              size="mini"
-            ></el-input-number>
-            <span style="margin-left: 5px">列:</span>
-            <el-input-number
-              class="el-input-number-override"
-              v-model="tableCol"
-              controls-position="right"
-              :min="1"
-              :max="100"
-              size="mini"
-            ></el-input-number>
-            <el-button type="primary" class="el-btn-create_table" @click="createTable">插入表格</el-button>
-          </li>
-        </ul>
-        <span slot="reference" class="el-dropdown-link">
-          <i class="iconfont icon-table"></i>
-        </span>
-      </el-popover>-->
     </ToolTip>
     <el-dialog
       title="编辑表格"
@@ -524,12 +488,8 @@ export default {
         return;
       }
 
-      // 是否处于双击状态
-      if (this.$Editor.activeGraph.cellEditor.isContentEditing()) {
-        this.isContentEditing = true;
-      } else {
-        this.isContentEditing = false;
-      }
+      // 是否处于已双击状态
+      this.isContentEditing = this.$Editor.activeGraph.cellEditor.isContentEditing();
 
       const { shape, text, style } = state;
       const { fill, stroke, strokewidth } = shape;

@@ -5,7 +5,6 @@
         class="thumb-item"
         v-for="(xml,index) in xmls"
         :key="xml.id"
-        :ref="index"
         :class="{active: (index == activeIndex)}"
       >
         <span class="index">{{index*1 + 1}}</span>
@@ -14,9 +13,9 @@
           @click="changeActive(index)"
           @contextmenu.prevent="changeActive(index)"
         >
-          <svg class="thumb-svg"></svg>
-          <div class="thumb-name">
-            <input :value="xml.title" @input="changePageTitle($event)" />
+          <div class="svg-wrap" :ref="index"></div>
+          <div class="thumb-name" style="cursor:pointer">
+            <input  :value="xml.title" @input="changePageTitle($event)" />
           </div>
         </div>
       </div>
@@ -41,8 +40,8 @@ export default {
     }
   },
   created() {
-    this.$bus.$on('modelChange', this.reflashThumb);
-    this.$bus.$on('drawThumb', this.drawThumb)
+    this.$bus.$on('modelChange', this.createThumb);
+    this.$bus.$on('drawThumb', this.drawThumb);
   },
   methods: {
     changeActive(index) {
@@ -57,22 +56,26 @@ export default {
       }
     },
     //刷新缩略图
-    reflashThumb(){
+    createThumb(index) {
+      const graph = this.$Editor.findGraphByIndex(index);
+      const pageWidth = graph.pageFormat.width;
+      const pageHeight = graph.pageFormat.height;
+      const scals = graph.pageScale;
+      const { width: thumbWidth, height: thumbHeight } = this.$refs[index][0].getBoundingClientRect();
 
+      let scaleX = thumbWidth / pageWidth;
+      this.$refs[index][0].innerHTML = '';
+      this.$Editor.addGraphFragment(this.$refs[index][0], graph, scaleX);
     },
     // 生成缩略图
-    drawThumb(){
-      let drawPane = view.getDrawPane();
-      this.$Editor.graphs.forEach(graph => {
-          let drawPane = graph.getView().getDrawPane();
-          let index = graph.container.dataset.id;
-          this.refs[index][0].appendChild(drawPane)
-      });
-
+    drawThumb() {
+      let len = this.xmls.length;
+      for (let i = 0; i < len; i++) {
+        this.createThumb(i);
+      }
     }
   },
-  mounted(){
-  }
+  mounted() {}
 };
 </script>
 
@@ -92,13 +95,31 @@ export default {
     }
     .thumb-box {
       box-sizing: content-box;
-      width: 149.333px;
+      width: 150px;
       border: 1px solid #dae1e7;
-      .thumb-svg {
+      .svg-wrap {
+        position: relative;
+
         width: 100%;
-        background-color: #fff;
-        height: 84px;
+        height: 107px;
+        overflow: hidden;
+        .thumb-svg {
+          width: 100%;
+          height: 100%;
+          background-color: #fff;
+        }
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 3;
+          cursor: pointer;
+        }
       }
+
       &:hover {
         margin: -1px;
         border-width: 2px;

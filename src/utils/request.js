@@ -3,7 +3,7 @@ import qs from 'qs'
 
 const request = axios.create({
   baseURL: '',
-  timeout: 6000,
+  timeout: 12000,
   headers: {
     'Accept': '*/*',
     'X-Requested-With': 'XMLHttpRequest',
@@ -25,8 +25,11 @@ request.interceptors.request.use(config => {
 })
 
 request.interceptors.response.use(res => {
-  if(!res.data.success) {
-    return Promise.resolve(res)
+  if(res.data.state == 0 && res.data.message == 'login') {
+    if(!IS_DEV){
+      window.location.href = '/login?forward=' + encodeURIComponent(window.location.href);
+    }
+    return;
   }
   return res;
 }, err => {

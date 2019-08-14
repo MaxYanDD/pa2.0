@@ -30,12 +30,15 @@ const webpackConfig = merge(baseWebpackConfig, {
   plugins: [
     // http://vuejs.github.io/vue-loader/en/workflow/production.html
     new webpack.DefinePlugin({
-      'process.env': env
+      'process.env': env,
+      IS_DEV: JSON.stringify(false)
     }),
     new UglifyJsPlugin({
       uglifyOptions: {
         compress: {
-          warnings: false
+          warnings: false,
+          drop_debugger: true, // 发布时去除debugger语句
+          drop_console: true // 发布时去除console语句
         }
       },
       sourceMap: config.build.productionSourceMap,
