@@ -53,7 +53,6 @@ Editor.prototype.createGraph = function(xml,container){
 Editor.prototype.addGraph = function(graph) {
   this.graphs.push(graph);
   this.bindListener(graph)
-
   if (graph._xml) {
     this.loadGraphXml(graph._xml, graph);
   }
@@ -1141,10 +1140,10 @@ Editor.prototype.createPrintPreview = function(graph, scale, pf, border, x0, y0,
 Editor.prototype.createSvgStr = function(graph) {
   var div = document.createElement('div');
   div.style.cssText = `
-     overflow: hidden; break-inside: avoid; break-after: avoid;background:#fff;
-     width: 1595px;height:1127px;margin-top: 20px;
+     overflow: hidden; background:#fff;
+     width: 420mm;height:296.5mm;margin: 0 auto 20px;
     `;
-  this.addGraphFragment(div, graph, 1.45);
+  this.addGraphFragment(div, graph, 1.478);
 
   return div.outerHTML;
 };

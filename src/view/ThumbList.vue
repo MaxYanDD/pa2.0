@@ -1,34 +1,46 @@
 <template>
   <div class="thumb-list" v-contextmenu:contextmenu @contextmenu="handleContextMenu">
     <el-scrollbar>
-      <div
-        class="thumb-item"
-        v-for="(xml,index) in xmls"
-        :key="xml.id"
-        :class="{active: (index == activeIndex)}"
+      <draggable
+        v-model="xmlList"
+        v-bind="dragOptions"
+        @start="drag = true"
+        @end="dragEnd"
       >
-        <span class="index">{{index*1 + 1}}</span>
-        <div
-          class="thumb-box"
-          @click="changeActive(index)"
-          @contextmenu.prevent="changeActive(index)"
-        >
-          <div class="svg-wrap" :ref="index"></div>
-          <div class="thumb-name" style="cursor:pointer">
-            <input  :value="xml.title" @input="changePageTitle($event)" />
+        <transition-group type="transition" :name="!drag ? 'flip-list' : null">
+          <div
+            class="thumb-item"
+            v-for="(xml,index) in xmlList"
+            :key="xml.id"
+            :class="{active: (index == activeIndex)}"
+          >
+            <span class="index">{{index*1 + 1}}</span>
+            <div
+              class="thumb-box"
+              @mousedown="changeActive(index)"
+              @contextmenu.prevent="changeActive(index)"
+            >
+              <div class="svg-wrap" :ref="index"></div>
+              <div class="thumb-name" style="cursor:pointer">
+                <input :value="xml.title" @input="changePageTitle($event)" />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </transition-group>
+      </draggable>
     </el-scrollbar>
 
     <v-contextmenu ref="contextmenu" class="menu-override-thumb">
       <v-contextmenu-item @click="(e) => this.$bus.$emit('addXml')">新建页面</v-contextmenu-item>
+      <v-contextmenu-item @click="(e) => this.$bus.$emit('copyXml')">复制页面</v-contextmenu-item>
+      <v-contextmenu-item divider></v-contextmenu-item>
       <v-contextmenu-item @click="(e) => this.$bus.$emit('deleteActiveXml')">删除页面</v-contextmenu-item>
     </v-contextmenu>
   </div>
 </template>
 
 <script>
+import draggable from 'vuedraggable';
 export default {
   props: {
     xmls: {
@@ -38,6 +50,11 @@ export default {
       type: Number,
       default: 0
     }
+  },
+  data() {
+    return {
+      drag: false
+    };
   },
   created() {
     this.$bus.$on('modelChange', this.createThumb);
@@ -73,9 +90,33 @@ export default {
       for (let i = 0; i < len; i++) {
         this.createThumb(i);
       }
+    },
+    dragEnd(e){
+      this.drag = false;
+      this.changeActive(e.newIndex)
     }
   },
-  mounted() {}
+  components: {
+    draggable
+  },
+  computed: {
+    xmlList: {
+      set(newVal) {
+        this.$emit('update:xmls', newVal);
+      },
+      get() {
+        return this.xmls;
+      }
+    },
+    dragOptions() {
+      return {
+        animation: 500,
+        group: 'description',
+        disabled: false,
+        ghostClass: 'ghost'
+      };
+    }
+  }
 };
 </script>
 

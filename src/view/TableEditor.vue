@@ -4,31 +4,6 @@
     <div class="table-content">
       <div id="jexcel" ref="spreadsheet"></div>
       <div class="tool">
-        <!-- <div class="row">
-          <div>
-            <span>行:</span>
-            <el-input-number
-              class="el-input-number-override"
-              v-model="tableRow"
-              controls-position="right"
-              :min="1"
-              :max="100"
-              size="mini"
-            ></el-input-number>
-          </div>
-          <div>
-            <span style="margin-left: 5px">列:</span>
-            <el-input-number
-              class="el-input-number-override"
-              v-model="tableCol"
-              controls-position="right"
-              :min="1"
-              :max="100"
-              size="mini"
-            ></el-input-number>
-          </div>
-        </div>
-        <el-button type="primary" class="el-btn-create_table" @click="createTable">生 成</el-button>-->
         <el-button type="primary" class="el-btn-create_table" @click.stop="insertTable">插入表格</el-button>
       </div>
     </div>
@@ -113,7 +88,8 @@ export default {
     flex: 1;
     overflow: auto;
     background: #f5f5f5;
-    max-height: 500px;
+    min-height: 70vh;
+    max-height: 70vh;
     overflow: auto;
   }
 }

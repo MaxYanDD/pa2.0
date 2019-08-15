@@ -8,10 +8,10 @@
       <!-- 左侧 -->
       <div class="content-left" @click="stopEditing">
         <!-- <pageMenu /> -->
-        <ThumbList :activeIndex="activeIndex" :xmls="data.xmls" />
+        <ThumbList :activeIndex="activeIndex" :xmls.sync="data.xmls" />
       </div>
       <div class="content-right">
-        <PageList :activeXmlId="activeXmlId" :activeIndex="activeIndex" :xmls="data.xmls" />
+        <PageList :activeGraphId="activeGraphId" :activeIndex="activeIndex" :xmls="data.xmls" />
       </div>
     </div>
   </div>
@@ -31,6 +31,9 @@ export default {
   data() {
     return {
       hasData: false,
+      hasModify: false,
+      isDwonloading: false,
+      isUploading: false,
       project: {
         id: '',
         title: '',
@@ -51,7 +54,7 @@ export default {
         time: ''
       },
       activeIndex: 0,
-      activeXmlId: 0,
+      activeGraphId: 0,
       user: {
         name: '',
         avatar: '',
@@ -93,10 +96,15 @@ export default {
     this.$bus.$on('changeActive', this.changeActive);
     this.$bus.$on('save', this.upload);
     this.$bus.$on('addXml', this.addXml);
+    this.$bus.$on('copyXml', this.copyXml);
+    
     this.$bus.$on('changePageTitle', this.changePageTitle);
     this.$bus.$on('changeProjectTitle', this.changeProjectTitle);
     this.$bus.$on('deleteActiveXml', this.deleteActiveXml);
     this.$bus.$on('download', this.download);
+    this.$bus.$on('modelChange', this.modifyStatus);
+
+    this.keyDownHandler()
   },
   mounted() {},
   methods: {
@@ -106,12 +114,15 @@ export default {
       this.$Editor.activeGraph.getSelectionModel().clear(); // 清除cell选中状态
       this.$bus.$emit('updateToolBarStates', 'changeActive'); // 更新toolbars状态
     },
+    modifyStatus(){
+      this.hasModify = true;
+    },
 
     // 切换page
     changeActive(index) {
       this.stopEditing();
       this.activeIndex = index * 1;
-      this.activeXmlId = this.$Editor.switchGraph(index);
+      this.activeGraphId = this.$Editor.switchGraph(index);
     },
 
     // 改变当前页面标题
@@ -124,50 +135,73 @@ export default {
     },
 
     async download() {
-      if (!/\S{4,}/.test(this.project.title)) {
-        this.$message.error('方案名称必须大于4个字符');
-        return;
-      }
-   
+      if (!this.isDwonloading) {
+        this.isDwonloading = true;
 
-      this.saveAll();
+        if (!/\S{4,}/.test(this.project.title)) {
+          this.$message.error('方案名称必须大于4个字符');
+          return;
+        }
 
-      let params = {
-        project: this.project,
-        data: this.data
-      };
+        this.saveAll();
 
-      try {
-        const ret = await httpPost('/api/edit/saveData', params);
-        if (ret.state == 1) {
-          this.project.id = ret.content.id;
-          window.open(`/view/download/${this.project.id}`)
-        } 
-      } catch (err) {
-         
+        let params = {
+          project: this.project,
+          data: this.data
+        };
+
+        this.$message('正在生成，请耐心等待');
+
+        try {
+          const ret = await httpPost('/api/edit/saveData', params);
+          this.isDwonloading = false;
+          if (ret.state == 1) {
+            this.hasModify = false;
+            this.project.id = ret.content.id;
+            window.open(`/view/download/${this.project.id}`);
+          }
+        } catch (err) {
+          this.isDwonloading = false;
+        }
+      } else {
+        this.$message('下载中...');
       }
     },
+
     async upload() {
-      // 校验方案名称
-      if (!/\S{4,}/.test(this.project.title)) {
-        this.$message.error('方案名称必须大于4个字符');
+      
+      if(!this.hasModify){
+        this.$message('您的所有修改已保存');
         return;
       }
 
-      this.saveAll();
-      let params = {
-        project: this.project,
-        data: this.data
-      };
-
-      try {
-        const ret = await httpPost('/api/edit/saveData', params);
-        if (ret.state == 1) {
-          this.project.id = ret.content.id;
-          this.$message({ message: '保存成功', type: 'success' });
+      if (!this.isUploading) {
+        this.isUploading = true;
+        if (!/\S{4,}/.test(this.project.title)) {
+          this.$message.error('方案名称必须大于4个字符');
+          return;
         }
-      } catch (err) {
-        console.log(err);
+
+        this.saveAll();
+        let params = {
+          project: this.project,
+          data: this.data
+        };
+
+        try {
+          const ret = await httpPost('/api/edit/saveData', params);
+          if (ret.state == 1) {
+            this.isUploading = false;
+            this.project.id = ret.content.id;
+            this.hasModify = false;
+            this.$message({ message: '保存成功', type: 'success' });
+          }
+        } catch (err) {
+          console.log(err);
+          this.isUploading = false;
+        }
+      } else {
+        this.$message('保存中...');
       }
     },
     // 保存所有页面
@@ -199,7 +233,7 @@ export default {
           const { project, data } = ret.content;
           this.project = project;
           this.data = data;
-          this.activeXmlId = this.data.xmls[0].id * 1;
+          this.activeGraphId = this.data.xmls[0].id * 1;
           this.setDocTitle(this.project.name);
           this.hasData = true;
           this.$nextTick(() => {
@@ -217,7 +251,7 @@ export default {
         const ret = await httpGet('/api/user/info');
         if (ret.state == 1) {
           this.user = ret.content;
-        } 
+        }
       } catch (err) {}
     },
 
@@ -227,16 +261,24 @@ export default {
       }
     },
 
+    copyXml(){
+      this.savePage(this.activeIndex);
+      const {title,xml} = this.data.xmls[this.activeIndex];
+      this.addXml(title,xml)
+    },
+
     // 插入新增页xml
-    addXml() {
+    addXml(title,xml) {
       let id = this.getMaxXmlId() + 1;
-      let title = '新建页面';
-      let xml = '';
+      title = title || '新建页面';
+      xml = xml ||  '';
       this.data.xmls.splice(this.activeIndex * 1 + 1, 0, { id, title, xml });
       this.$nextTick(() => {
+        this.hasModify = true;
         this.$bus.$emit('addPage', id, xml, this.activeIndex + 1);
       });
     },
+
     // 获取最大的xmlId
     getMaxXmlId() {
       let max = 0;
@@ -270,6 +312,7 @@ export default {
       }
 
       this.$nextTick(() => {
+        this.hasModify = true;
         this.changeActive(this.activeIndex);
       });
     },
@@ -284,6 +327,16 @@ export default {
     },
     closeLoading() {
       this.loading.close();
+    },
+
+    // ctrl+s保存功能
+    keyDownHandler(e){
+      document.addEventListener('keydown',(e) => {
+        if(e.keyCode == 83 && e.ctrlKey){
+          e.preventDefault();
+          this.upload();
+        }
+      })
     }
   }
 };

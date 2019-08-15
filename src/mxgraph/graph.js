@@ -68,7 +68,7 @@ let urlParams = (function(url) {
  *  画布大小
  */
 // mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 960, 720);
-mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 1100, 778);
+mxGraph.prototype.pageFormat = new mxRectangle(0, 0, 1076, 760);
 mxGraph.prototype.pageScale = 1;
 
 /**

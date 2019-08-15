@@ -49,7 +49,7 @@
               </a>
             </div>
             <div class="logout">
-              <a href="###">退出</a>
+              <a href="/logout">退出</a>
             </div>
           </el-dropdown-menu>
         </el-dropdown>
@@ -78,7 +78,7 @@ export default {
   }
 };
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 .topbar {
   display: flex;
   justify-content: space-between;

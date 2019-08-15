@@ -3,7 +3,7 @@
     class="page-list"
     v-contextmenu:contextmenu
     @contextmenu="handleContextMenu"
-    @click.stop="hideContextMenu"
+    @mousedown="hideContextMenu"
     @mousewheel="wheelHandler($event)"
   >
     <!-- 右键菜单 https://github.com/snokier/v-contextmenu/blob/master/docs/usage.md -->
@@ -54,7 +54,7 @@
       :key="xml.id"
       :ref="xml.id"
       class="page-item"
-      v-show="xml.id == activeXmlId"
+      v-show="xml.id == activeGraphId"
     />
   </div>
 </template>
@@ -68,7 +68,7 @@ export default {
     xmls: {
       type: Array
     },
-    activeXmlId: {
+    activeGraphId: {
       type: Number,
       default: 0
     },
@@ -114,6 +114,8 @@ export default {
       const graph = this.$Editor.createGraph({xml,id},this.$refs[id][0])
       this.$Editor.addGraph(graph)
       this.$bus.$emit('changeActive', index);
+      this.$bus.$emit('modelChange',index)
+
     },
 
     // 隐藏右键菜单

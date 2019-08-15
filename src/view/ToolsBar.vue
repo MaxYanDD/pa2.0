@@ -1,22 +1,22 @@
 <template>
   <div class="toolsbar" @mousedown.prevent>
-    <ToolTip content="保存" class="tool-item">
+    <ToolTip content="保存(Ctrl+S)" class="tool-item">
       <a @click="()=>{this.$bus.$emit('save')}">
         <i class="iconfont icon-baocun"></i>
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="打印(待开发)">
-      <a @click="()=>this.$Editor.preview()">
+      <a>
         <i class="iconfont icon-dayin"></i>
       </a>
     </ToolTip>
     <div class="toolbar-separator"></div>
-    <ToolTip class="tool-item" content="撤销">
+    <ToolTip class="tool-item" content="撤销(Ctrl+Z)">
       <a @click="(e) => this.$Editor.undo()">
         <i class="iconfont icon-undo"></i>
       </a>
     </ToolTip>
-    <ToolTip class="tool-item" content="重做">
+    <ToolTip class="tool-item" content="重做撤销(Ctrl+Shift+Z)">
       <a @click="() => this.$Editor.redo()">
         <i class="iconfont icon-redo"></i>
       </a>
@@ -57,13 +57,15 @@
         <i class="iconfont icon-table"></i>
       </a>
     </ToolTip>
+    <!-- 编辑表格弹窗 -->
     <el-dialog
       title="编辑表格"
+      top="5vh"
       :visible.sync="dialogTableVisible"
-      width="1000px"
+      width="90%"
       :fullscreen="isfullscreen"
       :append-to-body="true"
-      class="el-dialog-override"
+      class="el-dialog-override el-dialog-override-table"
     >
       <TableEditor @close="() => this.dialogTableVisible = !this.dialogTableVisible" />
     </el-dialog>
@@ -115,7 +117,7 @@
           </el-dropdown-menu>
         </el-dropdown>
       </ToolTip>
-      <ToolTip class="tool-item" content="边框线型" v-show="!isContentEditing">
+      <ToolTip class="tool-item" content="边框线型(待开发)" v-show="!isContentEditing">
         <a>
           <i class="iconfont icon-ic_line_style"></i>
         </a>
@@ -339,7 +341,6 @@
 import * as mxgraph from 'mxgraph';
 import ToolTip from '../components/ToolTip';
 import TableEditor from './TableEditor';
-import store from '../store';
 
 export default {
   data() {
