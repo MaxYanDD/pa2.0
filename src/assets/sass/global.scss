@@ -29,11 +29,18 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     line-height: 1;
   }
+
+}
+
+.v-contextmenu {
   .v-contextmenu-item--hover {
     color: #000 !important;
-    background-color: #eff8ff;
+    background-color: rgba(0,0,0,.04);
   }
 }
+
+
+
 .thumb-item .jexcel-override,
 .page-item .jexcel-override {
   background-color: none;
@@ -47,15 +54,19 @@ body {
   }
 }
 .el-dropdown-override {
+
   .el-dropdown-menu__item {
     font-size: 14px;
     height: 34px;
     line-height: 34px;
     padding: 0 20px;
     &:hover {
-      background-color: #f5f7fa;
+      background-color: rgba(0,0,0,.04);
       color: #000;
     }
+  }
+  .popper__arrow{
+    display: none;
   }
 }
 .el-input-number-override {
@@ -212,3 +223,8 @@ foreignObject table {
   opacity: 0.3;
   background: #fff;
 }
+
+*::selection {
+  background-color: #b2dafd;
+}
+

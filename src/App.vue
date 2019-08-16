@@ -2,7 +2,6 @@
   <div id="app" v-if="hasData">
     <div class="header">
       <ProjectTopBar :user="user" :project="project" />
-      <ToolsBar />
     </div>
     <div class="content">
       <!-- 左侧 -->
@@ -11,6 +10,9 @@
         <ThumbList :activeIndex="activeIndex" :xmls.sync="data.xmls" />
       </div>
       <div class="content-right">
+        <div class="toolsbar-wrap">
+          <ToolsBar />
+        </div>
         <PageList :activeGraphId="activeGraphId" :activeIndex="activeIndex" :xmls="data.xmls" />
       </div>
     </div>
@@ -85,7 +87,8 @@ export default {
         id: 0,
         title: '首页',
         xml: `
-        <mxGraphModel dx="38" dy="36" grid="0" gridSize="10" guides="1" tooltips="0" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="778"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="2" value="欢迎使用云知光商城方案助手" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000;fontSize=66;" vertex="1" parent="1"><mxGeometry x="57.5" y="127" width="985" height="171" as="geometry"/></mxCell><mxCell id="4" value="" style="shape=image;imageAspect=0;aspect=aspect;verticalLabelPosition=bottom;verticalAlign=top;image=http://imgcache.eltmall.com/logo/eltmall.svg;" vertex="1" parent="1"><mxGeometry x="205" y="499" width="690" height="139" as="geometry"/></mxCell></root></mxGraphModel>`
+        <mxGraphModel dx="33" dy="45" grid="0" gridSize="10" guides="1" tooltips="0" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1076" pageHeight="760"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="3" value="" style="shape=image;imageAspect=0;aspect=aspect;verticalLabelPosition=bottom;verticalAlign=top;image=http://imgcache.eltmall.com/logo/eltmall.svg;" vertex="1" parent="1"><mxGeometry x="193" y="380" width="690" height="139" as="geometry"/></mxCell><mxCell id="4" value="&lt;span&gt;&lt;font style=&quot;font-size: 66px&quot;&gt;欢迎使用云知光商城方案助手&lt;/font&gt;&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000" vertex="1" parent="1"><mxGeometry x="75" y="111" width="926" height="108" as="geometry"/></mxCell></root></mxGraphModel>
+        `
       });
 
       this.$nextTick(() => {
@@ -97,14 +100,14 @@ export default {
     this.$bus.$on('save', this.upload);
     this.$bus.$on('addXml', this.addXml);
     this.$bus.$on('copyXml', this.copyXml);
-    
+
     this.$bus.$on('changePageTitle', this.changePageTitle);
     this.$bus.$on('changeProjectTitle', this.changeProjectTitle);
     this.$bus.$on('deleteActiveXml', this.deleteActiveXml);
     this.$bus.$on('download', this.download);
     this.$bus.$on('modelChange', this.modifyStatus);
 
-    this.keyDownHandler()
+    this.keyDownHandler();
   },
   mounted() {},
   methods: {
@@ -114,7 +117,7 @@ export default {
       this.$Editor.activeGraph.getSelectionModel().clear(); // 清除cell选中状态
       this.$bus.$emit('updateToolBarStates', 'changeActive'); // 更新toolbars状态
     },
-    modifyStatus(){
+    modifyStatus() {
       this.hasModify = true;
     },
 
@@ -169,19 +172,18 @@ export default {
     },
 
     async upload() {
-      
-      if(!this.hasModify){
+      if (!this.hasModify) {
         this.$message('您的所有修改已保存');
+        return;
+      }
+
+      if (!/\S{4,}/.test(this.project.title)) {
+        this.$message.error('方案名称必须大于4个字符');
         return;
       }
 
       if (!this.isUploading) {
         this.isUploading = true;
-        if (!/\S{4,}/.test(this.project.title)) {
-          this.$message.error('方案名称必须大于4个字符');
-          return;
-        }
-
         this.saveAll();
         let params = {
           project: this.project,
@@ -223,6 +225,7 @@ export default {
 
       xml.xml = this.$Editor.getGraphXml(graph);
       this.data.pages.push(this.$Editor.createSvgStr(graph));
+      console.log(xml.xml);
     },
 
     // 根据id请求page数据
@@ -261,17 +264,17 @@ export default {
       }
     },
 
-    copyXml(){
+    copyXml() {
       this.savePage(this.activeIndex);
-      const {title,xml} = this.data.xmls[this.activeIndex];
-      this.addXml(title,xml)
+      const { title, xml } = this.data.xmls[this.activeIndex];
+      this.addXml(title, xml);
     },
 
     // 插入新增页xml
-    addXml(title,xml) {
+    addXml(title, xml) {
       let id = this.getMaxXmlId() + 1;
       title = title || '新建页面';
-      xml = xml ||  '';
+      xml = xml || '';
       this.data.xmls.splice(this.activeIndex * 1 + 1, 0, { id, title, xml });
       this.$nextTick(() => {
         this.hasModify = true;
@@ -330,13 +333,13 @@ export default {
     },
 
     // ctrl+s保存功能
-    keyDownHandler(e){
-      document.addEventListener('keydown',(e) => {
-        if(e.keyCode == 83 && e.ctrlKey){
+    keyDownHandler(e) {
+      document.addEventListener('keydown', e => {
+        if (e.keyCode == 83 && e.ctrlKey) {
           e.preventDefault();
           this.upload();
         }
-      })
+      });
     }
   }
 };
@@ -356,7 +359,6 @@ export default {
 .header {
   position: absolute;
   top: 0;
-  bottom: 86px;
   left: 0;
   right: 0;
   background-color: #fff;
@@ -364,7 +366,7 @@ export default {
 
 .content {
   position: absolute;
-  top: 86px;
+  top: 45px;
   left: 0;
   bottom: 0;
   right: 0;
@@ -375,7 +377,7 @@ export default {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 240px;
+  width: 200px;
   border-right: 1px solid #dae1e7;
   overflow: hidden;
   background-color: #fcfcfc;
@@ -386,8 +388,15 @@ export default {
   top: 0;
   right: 0;
   bottom: 0;
-  left: 240px;
+  left: 200px;
   overflow: hidden;
   background-color: rgb(242, 242, 242);
+  .toolsbar-wrap{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+  }
 }
+
 </style>

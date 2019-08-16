@@ -127,12 +127,11 @@ export default {
   overflow-y: hidden;
   .thumb-item {
     display: flex;
-    justify-content: flex-end;
-    width: 205px;
-    margin: 20px 0;
+    justify-content: flex-start;
+    margin: 20px 0 20px 15px;
     .index {
       margin-right: 6px;
-      color: #202124;
+        color: rgba(0,0,0,.48);
     }
     .thumb-box {
       box-sizing: content-box;
@@ -189,9 +188,7 @@ export default {
         border-width: 2px;
         border-color: #3388ff;
       }
-      .index {
-        color: #3388ff;
-      }
+
     }
   }
 }

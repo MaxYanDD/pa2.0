@@ -5797,7 +5797,8 @@ if (typeof mxVertexHandler != 'undefined') {
         var mxCellEditorStartEditing = mxCellEditor.prototype.startEditing;
         mxCellEditor.prototype.startEditing = function (cell, trigger) {
             mxCellEditorStartEditing.apply(this, arguments);
-
+            
+            console.log('startEditing');
             // Overrides class in case of HTML content to add
             // dashed borders for divs and table cells
             var state = this.graph.view.getState(cell);
@@ -5840,6 +5841,10 @@ if (typeof mxVertexHandler != 'undefined') {
                 this.textarea.style.outline = 'none';
                 this.textarea.style.border = '';
             }
+            var updateCssHandler = function(){
+                this.graph._editor.$bus.$emit('updateFontStyle');
+            }
+            mxEvent.addListener(this.textarea, 'mouseup', updateCssHandler.bind(this));
         }
 
         /**

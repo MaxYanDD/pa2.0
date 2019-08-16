@@ -18,3 +18,22 @@ export function getUrlParams() {
   return ret;
 }
 
+
+export function changeFontSize() {
+  document.execCommand("fontSize", false, "7");
+  var fontElements = document.getElementsByTagName("font");
+  for (var i = 0, len = fontElements.length; i < len; ++i) {
+      if (fontElements[i].size == "7") {
+          fontElements[i].removeAttribute("size");
+          fontElements[i].style.fontSize = "30px";
+      }
+  }
+}
+
+export function getStyle(element,attr) {
+  if(window.getComputedStyle){
+      return window.getComputedStyle(element,null)[attr];
+  }else {
+      return element.currentStyle[attr];
+  }
+}

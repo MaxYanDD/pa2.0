@@ -8,6 +8,7 @@ function destroyed() {
 }
 
 function preventMouseDown(e) {
+  console.log('mouseDown');
   let isColorPicker = e.target.classList.contains('el-color-picker__panel') || e.target.classList.contains('el-dropdown-menu') || parentHas(e);
   if (isColorPicker) {
     e.preventDefault();

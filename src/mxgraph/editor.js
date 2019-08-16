@@ -1,6 +1,6 @@
 import * as mxgraph from 'mxgraph';
-import _Graph  from './graph'
-const { mxGraph ,mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxTemporaryCellStates, mxResources, mxUtils, mxConstants, mxPoint, mxCodec, mxPrintPreview, mxUndoManager, mxClipboard, mxRectangle } = mxgraph();
+import _Graph from './graph';
+const { mxGraph, mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxTemporaryCellStates, mxResources, mxUtils, mxConstants, mxPoint, mxCodec, mxPrintPreview, mxUndoManager, mxClipboard, mxRectangle } = mxgraph();
 
 function Editor(bus) {
   this.$bus = bus;
@@ -31,28 +31,26 @@ Editor.prototype.loadGraphs = function(graphs, id) {
     if (graph._xml) {
       this.loadGraphXml(graph._xml, graph);
     }
-
   });
-  this.$bus.$emit('drawThumb')
+  this.$bus.$emit('drawThumb');
 };
-
 
 /**
  * 添加graph实例
  */
-Editor.prototype.createGraph = function(xml,container){
+Editor.prototype.createGraph = function(xml, container) {
   if (container) {
     container.innerHTML = '';
     return new _Graph(xml.id * 1, xml.xml, container, null, null, null, this);
   }
-}
+};
 
 /**
  * 添加graph实例
  */
 Editor.prototype.addGraph = function(graph) {
   this.graphs.push(graph);
-  this.bindListener(graph)
+  this.bindListener(graph);
   if (graph._xml) {
     this.loadGraphXml(graph._xml, graph);
   }
@@ -68,8 +66,8 @@ Editor.prototype.bindListener = function(graph) {
 
 // mxCell发生变化触发
 Editor.prototype.modelChange = function() {
-  let index = this.activeGraph.container.dataset.id
-  this.$bus.$emit('modelChange',index)
+  let index = this.activeGraph.container.dataset.id;
+  this.$bus.$emit('modelChange', index);
 };
 
 // 将修改加入histoty中
@@ -279,7 +277,9 @@ Editor.prototype.toBack = function() {
 
 Editor.prototype.toggleLock = function() {
   var graph = this.activeGraph;
+  
   if (!graph.isSelectionEmpty()) {
+    graph.stopEditing(false);
     graph.getModel().beginUpdate();
     try {
       var defaultValue = graph.isCellMovable(graph.getSelectionCell()) ? 1 : 0;
@@ -517,7 +517,7 @@ Editor.prototype.createShape = function(style, width, height, value, title, show
     graph.stopEditing();
 
     // Holding alt while mouse is released ignores drop target
-    var validDropTarget = target != null && !mxEvent.isAltDown(evt) ? graph.isValidDropTarget(target, cells, evt) : false;
+    // var validDropTarget = target != null && !mxEvent.isAltDown(evt) ? graph.isValidDropTarget(target, cells, evt) : false;
     var select = null;
 
     // if (target != null && !validDropTarget) {
@@ -601,7 +601,7 @@ Editor.prototype.createEdge = function(style, width, height, value, title, showL
     graph.stopEditing();
 
     // Holding alt while mouse is released ignores drop target
-    var validDropTarget = target != null && !mxEvent.isAltDown(evt) ? graph.isValidDropTarget(target, cells, evt) : false;
+    // var validDropTarget = target != null && !mxEvent.isAltDown(evt) ? graph.isValidDropTarget(target, cells, evt) : false;
     var select = null;
 
     // if (target != null && !validDropTarget) {
@@ -698,7 +698,6 @@ Editor.prototype.selectionChange = function() {
   }
 
   var state = graph.view.getState(graph.getSelectionCell());
-
   this.$bus.$emit('updateToolBarStates', state, vertexSelected, edgeSelected);
 };
 
@@ -841,7 +840,7 @@ Editor.prototype.changeStyle = function(key, value) {
 /**
  * 切换字体样式，粗体，斜体，下划线
  */
-Editor.prototype.toggleFontStyle = function(style) {
+Editor.prototype.changFontStyle = function(style, value) {
   var graph = this.activeGraph;
   var fontStyle = {
     bold: 1,
@@ -849,7 +848,16 @@ Editor.prototype.toggleFontStyle = function(style) {
     underline: 4
   };
   if (graph.cellEditor.isContentEditing()) {
-    document.execCommand(style, true, null);
+    if (style == 'fontSize') {
+      document.execCommand('fontSize', false, '7');
+      var fontElements = document.querySelector('font[size="7"]');
+      if (fontElements) {
+        fontElements.removeAttribute('size');
+        fontElements.style.fontSize = value + 'px';
+      }
+      return;
+    }
+    document.execCommand(style, true, value);
   } else {
     graph.stopEditing(false);
 
@@ -1148,10 +1156,8 @@ Editor.prototype.createSvgStr = function(graph) {
   return div.outerHTML;
 };
 
-
-
-Editor.prototype.addGraphFragment = function(div,sourceGraph,scale) {
-  var graph = new _Graph(null,null,div, sourceGraph.getModel(), null, sourceGraph.getStylesheet());
+Editor.prototype.addGraphFragment = function(div, sourceGraph, scale) {
+  var graph = new _Graph(null, null, div, sourceGraph.getModel(), null, sourceGraph.getStylesheet());
   div.innerHTML = '';
 
   var dx = 0;
@@ -1223,17 +1229,9 @@ Editor.prototype.addGraphFragment = function(div,sourceGraph,scale) {
     // Creates the temporary cell states in the view and
     // draws them onto the temporary DOM nodes in the view
     var cells = [graph.getModel().getRoot()];
-    temp = new mxTemporaryCellStates(
-      view,
-      scale,
-      cells,
-      null,
-      null
-    );
+    temp = new mxTemporaryCellStates(view, scale, cells, null, null);
     graph = null;
-
   } finally {
-
   }
 };
 

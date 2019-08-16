@@ -3,7 +3,7 @@
     class="page-list"
     v-contextmenu:contextmenu
     @contextmenu="handleContextMenu"
-    @mousedown="hideContextMenu"
+    @mousedown="mouseDownHandler"
     @mousewheel="wheelHandler($event)"
   >
     <!-- 右键菜单 https://github.com/snokier/v-contextmenu/blob/master/docs/usage.md -->
@@ -122,6 +122,10 @@ export default {
     hideContextMenu() {
       this.$refs.contextmenu.hide();
     },
+    mouseDownHandler(){
+      console.log('mouseDown');
+      this.hideContextMenu()
+    },
     disableContext(){
       this.disableContextMenu = true;
     },
@@ -142,6 +146,7 @@ export default {
     },
 
     wheelHandler(e){
+      if(this.xmls.length == 1) return;
       if(e.wheelDelta < 0){
         this.$bus.$emit('changeActive', this.activeIndex+1 > this.xmls.length-1 ? this.xmls.length-1 : this.activeIndex+1)
       }else {
