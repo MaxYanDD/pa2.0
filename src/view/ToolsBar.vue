@@ -5,11 +5,11 @@
         <i class="iconfont icon-baocun"></i>
       </a>
     </ToolTip>
-    <ToolTip class="tool-item" content="打印(待开发)">
+    <!-- <ToolTip class="tool-item" content="打印(待开发)">
       <a>
         <i class="iconfont icon-dayin"></i>
       </a>
-    </ToolTip>
+    </ToolTip> -->
     <div class="toolbar-separator"></div>
     <ToolTip class="tool-item" content="撤销(Ctrl+Z)">
       <a @click="(e) => this.$Editor.undo()">
@@ -70,11 +70,12 @@
       <TableEditor @close="() => this.dialogTableVisible = !this.dialogTableVisible" />
     </el-dialog>
 
-    <div class="toolbar-separator"></div>
+   
 
     <!-- 文本框和多边形可用的编辑选项 -->
     <div v-show="currentshape == 'label'">
       <div class="modifier" v-show="isContentEditing">
+        <div class="toolbar-separator"></div>
         <ToolTip class="tool-item" content="字体">
           <el-dropdown
             trigger="click"
@@ -168,6 +169,7 @@
         </ToolTip>
       </div>
       <div class="modifier" v-show="!isContentEditing">
+        <div class="toolbar-separator"></div>
         <ToolTip class="tool-item" content="填充颜色">
           <a @mousedown.stop>
             <i class="iconfont icon-tianchong"></i>
@@ -252,6 +254,7 @@
     </div>
     <!-- 图片可用的编辑选项 -->
     <div v-show="currentshape == 'image'" class="modifier">
+       <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="边框颜色">
         <a>
           <i class="iconfont icon-pen"></i>
@@ -294,14 +297,15 @@
           <i class="iconfont icon-zhongzhitupian"></i>
         </a>
       </ToolTip>
-      <ToolTip class="tool-item" content="裁剪(待开发)">
+      <!-- <ToolTip class="tool-item" content="裁剪(待开发)">
         <a>
           <i class="iconfont icon-caijian"></i>
         </a>
-      </ToolTip>
+      </ToolTip> -->
     </div>
     <!-- 线条可用的编辑选项 -->
     <div v-show="currentshape == 'connector'" class="modifier">
+       <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="边框颜色">
         <a>
           <i class="iconfont icon-pen"></i>
@@ -629,7 +633,8 @@ export default {
   display: flex;
   align-items: center;
   height: 41px;
-  border-bottom: 1px solid rgb(203, 203, 203);
+  background-color: #f8f9fa;
+  // border-bottom: 1px solid rgb(203, 203, 203);
   padding: 0 20px;
   .tool-item {
     position: relative;

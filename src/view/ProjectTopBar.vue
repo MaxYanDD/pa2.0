@@ -59,6 +59,7 @@
 </template>
 
 <script>
+import domtoimage from 'dom-to-image';
 export default {
   props: ['user', 'project'],
   data() {
@@ -71,6 +72,8 @@ export default {
     },
     download() {
       // TODO下载
+
+   
     },
     changeProjectTitle(e){
       this.$bus.$emit('changeProjectTitle',e.target.value)
@@ -84,7 +87,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   height: 45px;
-  border-bottom: 1px solid rgb(203, 203, 203);
+  border-bottom: 1px solid #e2e6ed;
 
   .tb-left {
     display: flex;

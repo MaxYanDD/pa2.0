@@ -25,8 +25,9 @@ import ThumbList from './view/ThumbList';
 import ToolsBar from './view/ToolsBar';
 import PageList from './view/PageList';
 import pageMenu from './components/pageMenu';
-import { getUrlParams } from '@/utils/utils';
+import { getUrlParams, formatDateTime } from '@/utils/utils';
 import { httpGet, httpPost } from '@/utils/request';
+import print from '@/utils/print';
 
 export default {
   name: 'App',
@@ -72,11 +73,15 @@ export default {
     pageMenu
   },
   created() {
-    this.openLoading();
+    this.openLoading('正在加载...');
 
     this.getUserInfo();
 
     let id = getUrlParams()['id'];
+
+    if (IS_DEV) {
+      id = '73edd4f10c7f';
+    }
 
     if (id) {
       this.getPageData(id);
@@ -104,9 +109,9 @@ export default {
     this.$bus.$on('changePageTitle', this.changePageTitle);
     this.$bus.$on('changeProjectTitle', this.changeProjectTitle);
     this.$bus.$on('deleteActiveXml', this.deleteActiveXml);
-    this.$bus.$on('download', this.download);
     this.$bus.$on('modelChange', this.modifyStatus);
-
+    // this.$bus.$on('download', this.download);
+    this.$bus.$on('download', this.downloadPdfFrontEnd);
     this.keyDownHandler();
   },
   mounted() {},
@@ -117,6 +122,7 @@ export default {
       this.$Editor.activeGraph.getSelectionModel().clear(); // 清除cell选中状态
       this.$bus.$emit('updateToolBarStates', 'changeActive'); // 更新toolbars状态
     },
+
     modifyStatus() {
       this.hasModify = true;
     },
@@ -138,13 +144,13 @@ export default {
     },
 
     async download() {
+      if (!/\S{4,}/.test(this.project.title)) {
+        this.$message.error('方案名称必须大于4个字符');
+        return;
+      }
+
       if (!this.isDwonloading) {
         this.isDwonloading = true;
-
-        if (!/\S{4,}/.test(this.project.title)) {
-          this.$message.error('方案名称必须大于4个字符');
-          return;
-        }
 
         this.saveAll();
 
@@ -225,7 +231,6 @@ export default {
 
       xml.xml = this.$Editor.getGraphXml(graph);
       this.data.pages.push(this.$Editor.createSvgStr(graph));
-      console.log(xml.xml);
     },
 
     // 根据id请求page数据
@@ -237,11 +242,11 @@ export default {
           this.project = project;
           this.data = data;
           this.activeGraphId = this.data.xmls[0].id * 1;
-          this.setDocTitle(this.project.name);
+          this.setDocTitle(this.project.title);
           this.hasData = true;
           this.$nextTick(() => {
             this.$bus.$emit('reload');
-            this.closeLoading();
+            this.loading.close();
           });
         }
         //TODO如果有localstorage，对比data中的time,如果localstorage中的时间更晚，弹窗提示，是否替换现有的。
@@ -264,6 +269,7 @@ export default {
       }
     },
 
+    // 复制当前xml
     copyXml() {
       this.savePage(this.activeIndex);
       const { title, xml } = this.data.xmls[this.activeIndex];
@@ -320,16 +326,13 @@ export default {
       });
     },
 
-    openLoading() {
+    openLoading(string) {
       this.loading = this.$loading({
         lock: true,
-        text: '加载中...',
+        text: string,
         spinner: 'el-icon-loading',
         background: '#fff'
       });
-    },
-    closeLoading() {
-      this.loading.close();
     },
 
     // ctrl+s保存功能
@@ -340,8 +343,28 @@ export default {
           this.upload();
         }
       });
+    },
+
+    // 下载
+    async downloadPdfFrontEnd() {
+      this.openLoading('下载中...');
+      this.saveAll();
+
+      // 创建预览
+      let divForPrint = document.createElement('div');
+      divForPrint.className = 'print-wrap';
+      divForPrint.innerHTML = this.data.pages.join('');
+      divForPrint.style.cssText = `position:fixed;top:0;left:0;z-index:-1;`;
+      document.body.appendChild(divForPrint);
+
+      // 打印
+      await print(this.project.title + '-云知光方案助手-' + formatDateTime(new Date()));
+
+      this.loading.close();
+      document.body.removeChild(divForPrint);
     }
-  }
+  },
+
 };
 </script>
 
@@ -391,12 +414,14 @@ export default {
   left: 200px;
   overflow: hidden;
   background-color: rgb(242, 242, 242);
-  .toolsbar-wrap{
+  .toolsbar-wrap {
     position: absolute;
     top: 0;
     left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
     z-index: 2;
   }
 }
-
 </style>

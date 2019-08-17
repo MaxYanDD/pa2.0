@@ -39,8 +39,7 @@ body {
   }
 }
 
-
-
+.print-wrap .jexcel-override,
 .thumb-item .jexcel-override,
 .page-item .jexcel-override {
   background-color: none;
@@ -98,6 +97,7 @@ body {
 
 .jexcel-override {
   user-select: none;
+
 }
 foreignObject table {
   margin: -1px 0 0 -1px;
@@ -220,7 +220,7 @@ foreignObject table {
   overflow: hidden;
 }
 .ghost {
-  opacity: 0.3;
+  opacity: 0;
   background: #fff;
 }
 

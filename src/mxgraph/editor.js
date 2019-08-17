@@ -294,6 +294,7 @@ Editor.prototype.toggleLock = function() {
     }
   }
 };
+
 /**
  * pasteHere;
  */
@@ -476,6 +477,8 @@ Editor.prototype.changeImage = function(imgUrl) {
 
   img.src = imgUrl;
 };
+
+
 
 /**
  * 插入线
@@ -1147,10 +1150,12 @@ Editor.prototype.createPrintPreview = function(graph, scale, pf, border, x0, y0,
  */
 Editor.prototype.createSvgStr = function(graph) {
   var div = document.createElement('div');
+  div.className="print-page";
   div.style.cssText = `
      overflow: hidden; background:#fff;
-     width: 420mm;height:296.5mm;margin: 0 auto 20px;
+     width: 420mm;height:296.5mm;
     `;
+    //margin: 0 auto 20px;
   this.addGraphFragment(div, graph, 1.478);
 
   return div.outerHTML;

@@ -13,6 +13,7 @@ module.exports = {
       '/api': {
         target: 'http://pa.eltmall.me', //目标接口域名
         changeOrigin: true,  //是否跨域
+
       }
     },
 

@@ -18,7 +18,7 @@ export function getUrlParams() {
   return ret;
 }
 
-
+// 改变选中字体大小
 export function changeFontSize() {
   document.execCommand("fontSize", false, "7");
   var fontElements = document.getElementsByTagName("font");
@@ -30,6 +30,7 @@ export function changeFontSize() {
   }
 }
 
+// 获取计算样式
 export function getStyle(element,attr) {
   if(window.getComputedStyle){
       return window.getComputedStyle(element,null)[attr];
@@ -37,3 +38,22 @@ export function getStyle(element,attr) {
       return element.currentStyle[attr];
   }
 }
+
+// 获取时间戳
+export function formatDateTime(inputTime) {    
+  var date = new Date(inputTime);  
+  var y = date.getFullYear();    
+  var m = date.getMonth() + 1;    
+  m = m < 10 ? ('0' + m) : m;    
+  var d = date.getDate();    
+  d = d < 10 ? ('0' + d) : d;    
+  var h = date.getHours();  
+  h = h < 10 ? ('0' + h) : h;  
+  var minute = date.getMinutes();  
+  var second = date.getSeconds();  
+  minute = minute < 10 ? ('0' + minute) : minute;    
+  second = second < 10 ? ('0' + second) : second;   
+  return y + '-' + m + '-' + d+' '+h+':'+minute+':'+second;    
+};  
+
+
