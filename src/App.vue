@@ -1,12 +1,12 @@
 <template>
   <div id="app" v-if="hasData">
     <div class="header">
-      <ProjectTopBar :user="user" :project="project" />
+      <ProjectTopBar :user="user" :project="project" :progress="pdfPrint.progress"/>
     </div>
     <div class="content">
       <!-- 左侧 -->
       <div class="content-left" @click="stopEditing">
-        <!-- <pageMenu /> -->
+        <pageMenu />
         <ThumbList :activeIndex="activeIndex" :xmls.sync="data.xmls" />
       </div>
       <div class="content-right">
@@ -27,7 +27,7 @@ import PageList from './view/PageList';
 import pageMenu from './components/pageMenu';
 import { getUrlParams, formatDateTime } from '@/utils/utils';
 import { httpGet, httpPost } from '@/utils/request';
-import print from '@/utils/print';
+import pdfPrint from '@/utils/print';
 
 export default {
   name: 'App',
@@ -37,6 +37,7 @@ export default {
       hasModify: false,
       isDwonloading: false,
       isUploading: false,
+      pdfPrint: {progress:0},
       project: {
         id: '',
         title: '',
@@ -347,7 +348,7 @@ export default {
 
     // 下载
     async downloadPdfFrontEnd() {
-      this.openLoading('下载中...');
+      // this.openLoading('下载中...');
       this.saveAll();
 
       // 创建预览
@@ -357,10 +358,11 @@ export default {
       divForPrint.style.cssText = `position:fixed;top:0;left:0;z-index:-1;`;
       document.body.appendChild(divForPrint);
 
+      this.pdfPrint = new pdfPrint();
       // 打印
-      await print(this.project.title + '-云知光方案助手-' + formatDateTime(new Date()));
+      await this.pdfPrint.print((this.project.title || '未命名') + '-云知光方案助手-' + formatDateTime(new Date()));
 
-      this.loading.close();
+      // this.loading.close();
       document.body.removeChild(divForPrint);
     }
   },
@@ -422,6 +424,7 @@ export default {
     display: flex;
     justify-content: center;
     z-index: 2;
+    pointer-events: none;
   }
 }
 </style>

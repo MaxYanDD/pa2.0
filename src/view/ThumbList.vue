@@ -6,6 +6,8 @@
         v-bind="dragOptions"
         @start="drag = true"
         @end="dragEnd"
+        @add="gragAdd"
+        group="xmllist"
       >
         <transition-group type="transition" :name="!drag ? 'flip-list' : null">
           <div
@@ -30,6 +32,23 @@
       </draggable>
     </el-scrollbar>
 
+    <el-drawer
+      title="选择模板(拖拽)"
+      :visible.sync="drawer"
+      direction="ltr"
+      :append-to-body="true"
+      :modal="false"
+      class="drawer-override"
+      size="760px"
+    >
+      
+      <TempPicker />
+      <!-- <div class="draw-footer">
+        <el-button @click="dialogTableVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogTableVisible = false">确 定</el-button>
+      </div> -->
+    </el-drawer>
+
     <v-contextmenu ref="contextmenu" class="menu-override-thumb">
       <v-contextmenu-item @click="(e) => this.$bus.$emit('addXml')">新建页面</v-contextmenu-item>
       <v-contextmenu-item @click="(e) => this.$bus.$emit('copyXml')">复制页面</v-contextmenu-item>
@@ -41,6 +60,7 @@
 
 <script>
 import draggable from 'vuedraggable';
+import TempPicker from './TempPicker'
 export default {
   props: {
     xmls: {
@@ -53,14 +73,19 @@ export default {
   },
   data() {
     return {
-      drag: false
+      drag: false,
+      drawer:false
     };
   },
   created() {
     this.$bus.$on('modelChange', this.createThumb);
     this.$bus.$on('drawThumb', this.drawThumb);
+    this.$bus.$on('toggleDrawer', this.toggleDrawer);
   },
   methods: {
+    toggleDrawer(){
+      this.drawer = !this.drawer
+    },
     changeActive(index) {
       this.$bus.$emit('changeActive', index);
     },
@@ -72,7 +97,7 @@ export default {
         this.$refs.contextmenu.hide();
       }
     },
-    //刷新缩略图
+    //创建缩略图
     createThumb(index) {
       const graph = this.$Editor.findGraphByIndex(index);
       const pageWidth = graph.pageFormat.width;
@@ -94,10 +119,16 @@ export default {
     dragEnd(e){
       this.drag = false;
       this.changeActive(e.newIndex)
+    },
+    gragAdd(e){
+      console.log(this.$parent.getMaxXmlId())
+      console.log(e);
+      this.$bus.$emit('addPage', e.newIndex);
     }
   },
   components: {
-    draggable
+    draggable,
+    TempPicker 
   },
   computed: {
     xmlList: {
@@ -123,12 +154,13 @@ export default {
 <style lang="scss" scoped>
 .thumb-list {
   height: 100%;
-  // padding-top: 54px;
+  padding-top: 54px;
   overflow-y: hidden;
   .thumb-item {
     display: flex;
     justify-content: flex-start;
     margin: 20px 0 20px 15px;
+    user-select:none;
     .index {
       margin-right: 6px;
         color: rgba(0,0,0,.48);

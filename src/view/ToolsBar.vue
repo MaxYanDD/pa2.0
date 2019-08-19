@@ -76,9 +76,10 @@
     <div v-show="currentshape == 'label'">
       <div class="modifier" v-show="isContentEditing">
         <div class="toolbar-separator"></div>
-        <ToolTip class="tool-item" content="字体">
+        <ToolTip class="tool-item" content="字体" disabled>
           <el-dropdown
-            trigger="click"
+            trigger="hover"
+            :show-timeout="0"
             placement="bottom-start"
             size="mini"
             @command="(cmd) => {this.$Editor.changFontStyle('fontName',cmd.value);this.currentShapeStyle.fontFamily = cmd.label}"
@@ -92,14 +93,16 @@
                 v-for="item in fontFamilyList"
                 :command="item"
                 :key="item.value"
+                :style="{'font-family':item.value}"
               >{{item.label}}</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </ToolTip>
         <div class="toolbar-separator"></div>
-        <ToolTip class="tool-item" content="字号">
+        <ToolTip class="tool-item" content="字号" disabled>
           <el-dropdown
-            trigger="click"
+            trigger="hover"
+            :show-timeout="0"
             placement="bottom-start"
             size="mini"
             @command="(cmd) => {this.$Editor.changFontStyle('fontSize',cmd);this.currentShapeStyle.fontSize = cmd}"
@@ -148,9 +151,10 @@
           </a>
         </ToolTip>
         <div class="toolbar-separator"></div>
-        <ToolTip class="tool-item" content="行间距">
+        <ToolTip class="tool-item" content="行高" disabled>
           <el-dropdown
-            trigger="click"
+            trigger="hover"
+            :show-timeout="0"
             placement="bottom-start"
             size="mini"
             @command="cmd => changeStyle('lineHeight',cmd)"
@@ -194,9 +198,10 @@
             </div>
           </a>
         </ToolTip>
-        <ToolTip class="tool-item" content="边框粗细">
+        <ToolTip class="tool-item" content="边框粗细" disabled>
           <el-dropdown
-            trigger="click"
+            trigger="hover"
+            :show-timeout="0"
             placement="bottom-start"
             size="mini"
             @command="cmd => changeStyle('strokeWidth',cmd)"
@@ -269,7 +274,8 @@
       </ToolTip>
       <ToolTip class="tool-item" content="边框粗细">
         <el-dropdown
-          trigger="click"
+          trigger="hover"
+            :show-timeout="0"
           placement="bottom-start"
           size="mini"
           @command="cmd => changeStyle('strokeWidth',cmd)"
@@ -320,7 +326,8 @@
       </ToolTip>
       <ToolTip class="tool-item" content="边框粗细">
         <el-dropdown
-          trigger="click"
+          trigger="hover"
+            :show-timeout="0"
           placement="bottom-start"
           size="mini"
           @command="cmd => changeStyle('strokeWidth',cmd)"
@@ -508,7 +515,6 @@ export default {
         this.currentshape = '';
         return;
       }
-      console.log(state);
       // 是否处于已双击状态
       this.isContentEditing = this.$Editor.activeGraph.cellEditor.isContentEditing();
       this.updateFrameStyle(state);
@@ -635,7 +641,7 @@ export default {
   height: 41px;
   background-color: #f8f9fa;
   // border-bottom: 1px solid rgb(203, 203, 203);
-  padding: 0 20px;
+  pointer-events: auto;
   .tool-item {
     position: relative;
     display: inline-block;

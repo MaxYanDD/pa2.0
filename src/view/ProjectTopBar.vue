@@ -3,7 +3,12 @@
     <div class="tb-left">
       <a class="back fa fa-angle-left" href="/" title="返回"></a>
       <div class="project-info" title="至少4个字符">
-         <input type="text" placeholder="未命名方案" :value="project.title" @input="changeProjectTitle($event)" />
+        <input
+          type="text"
+          placeholder="未命名方案"
+          :value="project.title"
+          @input="changeProjectTitle($event)"
+        />
         <i class="fa fa-edit"></i>
       </div>
       <div class="project-set">
@@ -20,7 +25,23 @@
       </div>
     </div>
     <div class="tb-right">
-      <a @click="()=>this.$bus.$emit('download')" class="download" target="_blank">下载</a>
+      <div class="dlBtn">
+        <el-progress
+          v-if="progress>0 && progress < 100"
+          type="circle"
+          :percentage="progress"
+          :width="30"
+          :stroke-width="4"
+        ></el-progress>
+        <a
+          v-else-if="progress == 0 || progress == 100"
+          @click="()=>this.$bus.$emit('download')"
+          class="download"
+          target="_blank"
+        >下载</a>
+      </div>
+
+      <!-- <a @click="()=>this.$bus.$emit('download')" class="download" target="_blank">下载</a> -->
       <div class="user">
         <el-dropdown @command="handleCommand">
           <span class="el-dropdown-link">
@@ -61,9 +82,9 @@
 <script>
 import domtoimage from 'dom-to-image';
 export default {
-  props: ['user', 'project'],
+  props: ['user', 'project', 'progress'],
   data() {
-    return {};
+    return { visible: false };
   },
   methods: {
     handleCommand() {
@@ -72,11 +93,9 @@ export default {
     },
     download() {
       // TODO下载
-
-   
     },
-    changeProjectTitle(e){
-      this.$bus.$emit('changeProjectTitle',e.target.value)
+    changeProjectTitle(e) {
+      this.$bus.$emit('changeProjectTitle', e.target.value);
     }
   }
 };
@@ -152,17 +171,22 @@ export default {
     justify-content: center;
     align-items: center;
     margin-right: 20px;
+    .dlBtn {
+      width: 64px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      .download {
+        display: block;
+        flex: 1;
+        height: 44px;
+        line-height: 44px;
+        text-align: center;
+        color: #3388ff;
 
-    .download {
-      display: block;
-      padding: 0 20px;
-      height: 44px;
-      line-height: 44px;
-      text-align: center;
-      color: #3388ff;
-
-      &:hover {
-        background-color: #eff8ff;
+        &:hover {
+          background-color: #eff8ff;
+        }
       }
     }
 

@@ -1,24 +1,24 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import Vue from 'vue'
-import App from './App'
-import Editor from './mxgraph/editor'
-import { Loading, Dropdown,DropdownMenu,DropdownItem,Tooltip,ColorPicker,Select,Option,MessageBox,Message,Popover,Button,InputNumber,Dialog,Scrollbar } from 'element-ui'
-import './assets/css/reset.css'
-import 'font-awesome/css/font-awesome.min.css'
+import Vue from 'vue';
+import App from './App';
+import Editor from './mxgraph/editor';
+import { Drawer,Menu, Submenu, MenuItem, MenuItemGroup, Progress, Loading, Dropdown, DropdownMenu, DropdownItem, Tooltip, ColorPicker, Select, Option, MessageBox, Message, Popover, Button, InputNumber, Dialog, Scrollbar } from 'element-ui';
+import './assets/css/reset.css';
+import 'font-awesome/css/font-awesome.min.css';
 import 'element-ui/lib/theme-chalk/index.css';
-import './utils/EventHandler'
+import './utils/EventHandler';
 
 //https://github.com/snokier/v-contextmenu
-import contentmenu from 'v-contextmenu'
-import 'v-contextmenu/dist/index.css'
+import contentmenu from 'v-contextmenu';
+import 'v-contextmenu/dist/index.css';
 
-Vue.use(contentmenu) //右键菜单
+Vue.use(contentmenu); //右键菜单
 
 const bus = new Vue();
-Vue.prototype.$bus = bus
-Vue.prototype.$Editor = new Editor(bus)
-Vue.config.productionTip = false
+Vue.prototype.$bus = bus;
+Vue.prototype.$Editor = new Editor(bus);
+Vue.config.productionTip = false;
 
 // element-ui
 Vue.use(Dropdown);
@@ -34,8 +34,14 @@ Vue.use(InputNumber);
 Vue.use(Dialog);
 Vue.use(Scrollbar);
 Vue.use(Loading);
+Vue.use(Progress);
+Vue.use(Menu);
+Vue.use(Submenu);
+Vue.use(MenuItem);
+Vue.use(MenuItemGroup);
+Vue.use(Drawer);
 Vue.prototype.$prompt = MessageBox.prompt;
-Vue.prototype.$message  = Message;
+Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;
 
 new Vue({
@@ -43,4 +49,4 @@ new Vue({
   // router,
   components: { App },
   template: '<App/>'
-})
+});
