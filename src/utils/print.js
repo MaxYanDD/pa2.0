@@ -26,12 +26,13 @@ pdfPrint.prototype.print = async function(name){
     svgImages.forEach(image => {
       converToBase64pormiseList.push(this.converToBase64(image,imgstep));
     });
-    await Promise.all(converToBase64pormiseList.map(p => p.catch(e => {console.log('图片未加载成功')})));
+
+  // 将图片转换为base64,不管有没有成功，都会往下走
+    await Promise.all(converToBase64pormiseList.map(p => p.then((url) => {this.setPro(this.progress + imgstep);return url}).catch(e => {console.log('图片未加载成功')})));
   }
 
   this.setPro(30)
 
-  // 将图片转换为base64,不管有没有成功，都会往下走
 
   let doc = new jsPDF({ orientation: 'landscape', format: 'a3', unit: 'mm' });
   

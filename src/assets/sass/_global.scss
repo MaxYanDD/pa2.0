@@ -3,7 +3,7 @@ body {
   width: 100%;
   height: 100%;
 }
-#global {
+#override {
   .mxRubberband {
     position: absolute;
     overflow: hidden;
@@ -39,14 +39,6 @@ body {
     }
   }
 
-  .print-wrap .jexcel-override,
-  .thumb-item .jexcel-override,
-  .page-item .jexcel-override {
-    background-color: none;
-    tbody > tr > td:first-child {
-      background-color: transparent;
-    }
-  }
   .el-popper-override {
     .el-select-dropdown__wrap {
       max-height: 600px;
@@ -102,7 +94,12 @@ body {
 
   .jexcel-override {
     user-select: none;
+    background-color: none;
+    tbody > tr > td:first-child {
+      background-color: transparent;
+    }
   }
+
   foreignObject table {
     margin: -1px 0 0 -1px;
   }
@@ -221,7 +218,7 @@ body {
     overflow: hidden;
   }
 
-  .ghost {
+  .ghost-thum {
     opacity: 0;
     background: #fff;
   }
@@ -232,8 +229,8 @@ body {
     }
   }
 
-  *::selection {
-    background-color: #b2dafd;
+  .page-list ::selection {
+    background-color: rgba(178, 218, 253, 0.5);
   }
 
   .drawer-override {
@@ -276,6 +273,28 @@ body {
     }
     .el-dialog__body {
       padding: 0;
+    }
+  }
+
+  .el-loading-mask {
+    .el-icon-loading {
+      font-size: 60px;
+    }
+    .el-loading-text {
+      font-size: 16px;
+    }
+  }
+  .hu-color-picker {
+    width: 218px !important;
+    .color-show {
+      display: none;
+    }
+  }
+  .color-popover {
+    padding: 0;
+    margin-top: 5px !important;
+    .popper__arrow {
+      display: none;
     }
   }
 }

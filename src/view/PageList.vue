@@ -4,7 +4,7 @@
     v-contextmenu:contextmenu
     @contextmenu="handleContextMenu"
     @mousedown="mouseDownHandler"
-    @mousewheel="wheelHandler($event)"
+    @wheel="wheelHandler($event)"
   >
     <!-- 右键菜单 https://github.com/snokier/v-contextmenu/blob/master/docs/usage.md -->
     <v-contextmenu ref="contextmenu" class="menu-override" :disabled="disableContextMenu">
@@ -114,8 +114,7 @@ export default {
       const graph = this.$Editor.createGraph({xml,id},this.$refs[id][0])
       this.$Editor.addGraph(graph)
       this.$bus.$emit('changeActive', index);
-      this.$bus.$emit('modelChange',index)
-
+      this.$bus.$emit('modelChange',index);
     },
 
     // 隐藏右键菜单
@@ -123,7 +122,6 @@ export default {
       this.$refs.contextmenu.hide();
     },
     mouseDownHandler(){
-      console.log('mouseDown');
       this.hideContextMenu()
     },
     disableContext(){
@@ -147,7 +145,7 @@ export default {
 
     wheelHandler(e){
       if(this.xmls.length == 1) return;
-      if(e.wheelDelta < 0){
+      if(e.wheelDelta < 0 || e.deltaY > 0){
         this.$bus.$emit('changeActive', this.activeIndex+1 > this.xmls.length-1 ? this.xmls.length-1 : this.activeIndex+1)
       }else {
         this.$bus.$emit('changeActive', this.activeIndex-1 < 0 ? 0 : this.activeIndex-1)

@@ -8,11 +8,12 @@ import './assets/css/reset.css';
 import 'font-awesome/css/font-awesome.min.css';
 import 'element-ui/lib/theme-chalk/index.css';
 import './utils/EventHandler';
-
 //https://github.com/snokier/v-contextmenu
 import contentmenu from 'v-contextmenu';
 import 'v-contextmenu/dist/index.css';
+// import vcolorpicker from 'vcolorpicker'
 
+// Vue.use(vcolorpicker)
 Vue.use(contentmenu); //右键菜单
 
 const bus = new Vue();

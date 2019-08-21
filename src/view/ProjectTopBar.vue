@@ -29,9 +29,9 @@
         <el-progress
           v-if="progress>0 && progress < 100"
           type="circle"
-          :percentage="progress"
+          :percentage="parseInt(progress)"
           :width="30"
-          :stroke-width="4"
+          :stroke-width="2"
         ></el-progress>
         <a
           v-else-if="progress == 0 || progress == 100"
@@ -117,7 +117,7 @@ export default {
       height: 44px;
       line-height: 42px;
       text-align: center;
-      font-size: 28px;
+      font-size: 20px;
 
       &:hover {
         color: #3388ff;
@@ -195,6 +195,7 @@ export default {
         display: block;
         height: 44px;
         line-height: 44px;
+        font-size: 0;
         padding: 0 20px;
         cursor: pointer;
 

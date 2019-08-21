@@ -54,11 +54,14 @@ export default {
   justify-content: center;
   align-items: center;
   text-align: center;
+  // border-bottom: 1px solid #cbcbcb;
+
   .new {
     width: 80px;
     padding: 8px;
     line-height: 1;
-    border-radius: 15px 0 0 15px;
+    background: #fff;
+    // border-radius: 15px 0 0 15px;
     border: 1px solid #cbcbcb;
     cursor: pointer;
     &:hover {
@@ -69,7 +72,8 @@ export default {
     width: 80px;
     line-height: 1;
     border: 1px solid #cbcbcb;
-    border-radius: 0 15px 15px 0;
+    background: #fff;
+    // border-radius: 0 15px 15px 0;
     padding: 8px;
     margin-left: -1px;
     cursor: pointer;

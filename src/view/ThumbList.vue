@@ -2,17 +2,17 @@
   <div class="thumb-list" v-contextmenu:contextmenu @contextmenu="handleContextMenu">
     <el-scrollbar>
       <draggable
-        v-model="xmlList"
-        v-bind="dragOptions"
+        :list="xmls"
         @start="drag = true"
         @end="dragEnd"
-        @add="gragAdd"
         group="xmllist"
+        ghost-class="ghost-thum"
+        v-bind="dragOptions"
       >
         <transition-group type="transition" :name="!drag ? 'flip-list' : null">
           <div
             class="thumb-item"
-            v-for="(xml,index) in xmlList"
+            v-for="(xml,index) in xmls"
             :key="xml.id"
             :class="{active: (index == activeIndex)}"
           >
@@ -33,7 +33,7 @@
     </el-scrollbar>
 
     <el-drawer
-      title="选择模板(拖拽)"
+      title="选择模板"
       :visible.sync="drawer"
       direction="ltr"
       :append-to-body="true"
@@ -120,11 +120,6 @@ export default {
       this.drag = false;
       this.changeActive(e.newIndex)
     },
-    gragAdd(e){
-      console.log(this.$parent.getMaxXmlId())
-      console.log(e);
-      this.$bus.$emit('addPage', e.newIndex);
-    }
   },
   components: {
     draggable,
@@ -133,19 +128,18 @@ export default {
   computed: {
     xmlList: {
       set(newVal) {
+        console.log('set')
         this.$emit('update:xmls', newVal);
       },
       get() {
         return this.xmls;
       }
     },
-    dragOptions() {
+    dragOptions(){
       return {
         animation: 500,
-        group: 'description',
         disabled: false,
-        ghostClass: 'ghost'
-      };
+      }
     }
   }
 };

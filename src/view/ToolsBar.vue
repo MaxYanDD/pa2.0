@@ -9,7 +9,7 @@
       <a>
         <i class="iconfont icon-dayin"></i>
       </a>
-    </ToolTip> -->
+    </ToolTip>-->
     <div class="toolbar-separator"></div>
     <ToolTip class="tool-item" content="撤销(Ctrl+Z)">
       <a @click="(e) => this.$Editor.undo()">
@@ -69,8 +69,6 @@
     >
       <TableEditor @close="() => this.dialogTableVisible = !this.dialogTableVisible" />
     </el-dialog>
-
-   
 
     <!-- 文本框和多边形可用的编辑选项 -->
     <div v-show="currentshape == 'label'">
@@ -139,7 +137,26 @@
           </a>
         </ToolTip>
         <ToolTip class="tool-item" content="字体颜色">
-          <a onmousedown="event.preventDefault();">
+          <el-popover
+            placement="bottom"
+            trigger="click"
+            :append-to-body="true"
+            popper-class="color-popover"
+          >
+            <div @mousedown.prevent>
+              <ColorPicker
+                :value="currentShapeStyle.fontColor"
+                @change="color => this.$Editor.changFontStyle('foreColor', color)"
+              />
+              <!-- <ColorPicker theme="light" @changeColor="changFontColor" /> -->
+            </div>
+
+            <a slot="reference">
+              <i class="iconfont icon-Font-color"></i>
+            </a>
+          </el-popover>
+
+          <!-- <a onmousedown="event.preventDefault();">
             <i class="iconfont icon-Font-color"></i>
             <div class="pickerbox">
               <el-color-picker
@@ -148,7 +165,7 @@
                 @change="fontColor => this.$Editor.changFontStyle('foreColor',fontColor)"
               ></el-color-picker>
             </div>
-          </a>
+          </a>-->
         </ToolTip>
         <div class="toolbar-separator"></div>
         <ToolTip class="tool-item" content="行高" disabled>
@@ -175,16 +192,35 @@
       <div class="modifier" v-show="!isContentEditing">
         <div class="toolbar-separator"></div>
         <ToolTip class="tool-item" content="填充颜色">
-          <a @mousedown.stop>
+          <el-popover
+            placement="bottom"
+            trigger="click"
+            :append-to-body="true"
+            popper-class="color-popover"
+          >
+            <div @mousedown.prevent>
+              <ColorPicker
+                :value="currentShapeStyle.fillColor"
+                @change="fillColor => changeStyle('fillColor',fillColor)"
+              />
+            </div>
+
+            <a slot="reference">
+              <i class="iconfont icon-tianchong"></i>
+            </a>
+          </el-popover>
+
+          <!-- <a @mousedown.stop>
             <i class="iconfont icon-tianchong"></i>
             <div class="pickerbox">
+              <ColorPicker v-model="currentShapeStyle.fillColor" @change="fillColor => changeStyle('fillColor',fillColor)"/>
               <el-color-picker
                 v-model="currentShapeStyle.fillColor"
                 :show-alpha="true"
                 @change="fillColor => changeStyle('fillColor',fillColor)"
               ></el-color-picker>
             </div>
-          </a>
+          </a>-->
         </ToolTip>
         <ToolTip class="tool-item" content="边框颜色">
           <a @mousedown.stop>
@@ -259,7 +295,7 @@
     </div>
     <!-- 图片可用的编辑选项 -->
     <div v-show="currentshape == 'image'" class="modifier">
-       <div class="toolbar-separator"></div>
+      <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="边框颜色">
         <a>
           <i class="iconfont icon-pen"></i>
@@ -275,7 +311,7 @@
       <ToolTip class="tool-item" content="边框粗细">
         <el-dropdown
           trigger="hover"
-            :show-timeout="0"
+          :show-timeout="0"
           placement="bottom-start"
           size="mini"
           @command="cmd => changeStyle('strokeWidth',cmd)"
@@ -307,11 +343,11 @@
         <a>
           <i class="iconfont icon-caijian"></i>
         </a>
-      </ToolTip> -->
+      </ToolTip>-->
     </div>
     <!-- 线条可用的编辑选项 -->
     <div v-show="currentshape == 'connector'" class="modifier">
-       <div class="toolbar-separator"></div>
+      <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="边框颜色">
         <a>
           <i class="iconfont icon-pen"></i>
@@ -327,7 +363,7 @@
       <ToolTip class="tool-item" content="边框粗细">
         <el-dropdown
           trigger="hover"
-            :show-timeout="0"
+          :show-timeout="0"
           placement="bottom-start"
           size="mini"
           @command="cmd => changeStyle('strokeWidth',cmd)"
@@ -365,8 +401,9 @@
 <script>
 import * as mxgraph from 'mxgraph';
 import ToolTip from '../components/ToolTip';
+import ColorPicker from '../components/ColorPicker';
 import TableEditor from './TableEditor';
-import { getStyle } from '../utils/utils';
+import { getStyle, debounce } from '../utils/utils';
 export default {
   data() {
     return {
@@ -502,7 +539,6 @@ export default {
   mounted() {},
   methods: {
     updateToolBarStates(state, vertexSelected, edgeSelected) {
-      
       // 获取当前选中mxCell的类型，image(图片),label(文本框和图形),connector(线),table
       // TODO 见Format.js 3441行
       if (!state) {
@@ -520,8 +556,8 @@ export default {
       this.updateFrameStyle(state);
       this.updateFontStyle();
     },
-    // 文本框骨架样式
-    updateFrameStyle(state) { 
+    // 文本框样式
+    updateFrameStyle(state) {
       if (Object.prototype.toString.call(state) == '[object Object]') {
         const { shape, text, style } = state;
         const { fill, stroke, strokewidth } = shape;
@@ -546,13 +582,14 @@ export default {
         this.currentShapeStyle.strokeWidth = strokewidth;
       }
     },
+    // 文字样式
     updateFontStyle() {
       if (this.isContentEditing) {
-        let fontDom = document.getSelection().baseNode.parentNode;
-        
+        let fontDom = document.getSelection().anchorNode.parentNode;
+
         this.currentShapeStyle.fontColor = getStyle(fontDom, 'color') || '#000';
-        this.currentShapeStyle.fontFamily = this.findlabel(this.fontFamilyList,getStyle(fontDom, 'fontFamily')) || 'Arial';
-        this.currentShapeStyle.fontSize = getStyle(fontDom, 'fontSize').replace('px','') || 16;
+        this.currentShapeStyle.fontFamily = this.findlabel(this.fontFamilyList, getStyle(fontDom, 'fontFamily')) || 'Arial';
+        this.currentShapeStyle.fontSize = getStyle(fontDom, 'fontSize').replace('px', '') || 16;
       }
     },
     findlabel(data, value) {
@@ -591,6 +628,14 @@ export default {
 
       this.$Editor.changeStyle(style, value);
     },
+    changFontColor({ rgba }) {
+      this.$Editor.changFontStyle('foreColor', rgba.toRgbaString());
+    },
+    changeFillColor() {
+      console.log(arguments);
+      // this.$Editor.changeStyle('fillColor', rgba.toRgbaString());
+    },
+
     // 选择图片弹窗
     selectImage(title) {
       this.$Editor.keyHandler.setEnabled(false);
@@ -618,12 +663,12 @@ export default {
     },
     mouseDownHandler(e) {
       e.stopPropagation();
-      console.log('mouseDown');
     }
   },
   components: {
     ToolTip,
-    TableEditor
+    TableEditor,
+    ColorPicker
   },
   watch: {
     dialogTableVisible(newValue) {

@@ -3833,7 +3833,7 @@ if (typeof mxVertexHandler != 'undefined') {
     (function () {
         // Sets colors for handles
         mxConstants.HANDLE_FILLCOLOR = '#29b6f2';
-        mxConstants.HANDLE_STROKECOLOR = '#0088cf';
+        mxConstants.HANDLE_STROKECOLOR = '#fff';
         mxConstants.VERTEX_SELECTION_COLOR = '#00a8ff';
         mxConstants.OUTLINE_COLOR = '#00a8ff';
         mxConstants.OUTLINE_HANDLE_FILLCOLOR = '#99ccff';

@@ -80,9 +80,9 @@ export default {
 
     let id = getUrlParams()['id'];
 
-    if (IS_DEV) {
-      id = '73edd4f10c7f';
-    }
+    // if (IS_DEV) {
+    //   id = '73edd4f10c7f';
+    // }
 
     if (id) {
       this.getPageData(id);
@@ -113,6 +113,7 @@ export default {
     this.$bus.$on('modelChange', this.modifyStatus);
     // this.$bus.$on('download', this.download);
     this.$bus.$on('download', this.downloadPdfFrontEnd);
+    this.$bus.$on('dragAdd', this.dragAdd);
     this.keyDownHandler();
   },
   mounted() {},
@@ -251,7 +252,10 @@ export default {
           });
         }
         //TODO如果有localstorage，对比data中的time,如果localstorage中的时间更晚，弹窗提示，是否替换现有的。
-      } catch (err) {}
+      } catch (err) {
+
+
+      }
     },
 
     // 获取用户信息
@@ -288,12 +292,19 @@ export default {
         this.$bus.$emit('addPage', id, xml, this.activeIndex + 1);
       });
     },
-
+    dragAdd(id,xml,index){
+      let neWid = this.getMaxXmlId() + 1;
+      this.data.xmls[index].id = neWid;
+      this.$nextTick(() => {
+        this.hasModify = true;
+        this.$bus.$emit('addPage', neWid, xml, index);
+      });
+    },
     // 获取最大的xmlId
     getMaxXmlId() {
       let max = 0;
       this.data.xmls.forEach(xml => {
-        if (xml.id * 1 > max) {
+        if (xml.id * 1 > max && xml.id < 1000) {
           max = xml.id * 1;
         }
       });
@@ -365,13 +376,12 @@ export default {
       // this.loading.close();
       document.body.removeChild(divForPrint);
     }
-  },
-
+  }
 };
 </script>
 
 <style lang='scss'>
-@import './assets/sass/global.scss';
+@import './assets/sass/_global.scss';
 
 #app {
   position: absolute;

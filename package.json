@@ -10,6 +10,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "@caohenghu/vue-colorpicker": "^1.1.1",
     "axios": "^0.19.0",
     "dom-to-image": "^2.6.0",
     "element-ui": "^2.11.1",
@@ -24,6 +25,7 @@
     "v-contextmenu": "^2.8.0",
     "vcolorpicker": "^0.1.8",
     "vue": "^2.5.2",
+    "vue-color": "^2.7.0",
     "vue-router": "^3.0.1",
     "vuedraggable": "^2.23.0",
     "vuex": "^3.1.1"
