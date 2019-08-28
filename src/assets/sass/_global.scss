@@ -4,6 +4,33 @@ body {
   height: 100%;
 }
 #override {
+  .pickerbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    .el-color-picker {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .el-color-picker__trigger {
+      padding: 0;
+      border: none;
+      .el-color-picker__color {
+        position: absolute;
+        left: 6px;
+        bottom: 8px;
+        border: none;
+        width: 20px;
+        height: 4px;
+      }
+    }
+    .el-color-picker__icon {
+      display: none;
+    }
+  }
   .mxRubberband {
     position: absolute;
     overflow: hidden;
@@ -165,33 +192,7 @@ body {
     .el-color-picker__color {
       display: none;
     }
-    .pickerbox {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      .el-color-picker {
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      .el-color-picker__trigger {
-        padding: 0;
-        border: none;
-        .el-color-picker__color {
-          position: absolute;
-          left: 6px;
-          bottom: 8px;
-          border: none;
-          width: 20px;
-          height: 4px;
-        }
-      }
-      .el-color-picker__icon {
-        display: none;
-      }
-    }
+   
     .el-dropdown-link {
       box-sizing: border-box;
       display: inline-block;

@@ -80,9 +80,9 @@ export default {
 
     let id = getUrlParams()['id'];
 
-    // if (IS_DEV) {
-    //   id = '73edd4f10c7f';
-    // }
+    if (IS_DEV) {
+      id = '8482d7309c83';
+    }
 
     if (id) {
       this.getPageData(id);
@@ -193,11 +193,11 @@ export default {
       if (!this.isUploading) {
         this.isUploading = true;
         this.saveAll();
+          console.log(this.data.xmls);
         let params = {
           project: this.project,
           data: this.data
         };
-
         try {
           const ret = await httpPost('/api/edit/saveData', params);
           if (ret.state == 1) {
@@ -357,7 +357,7 @@ export default {
       });
     },
 
-    // 下载
+    // 前端下载
     async downloadPdfFrontEnd() {
       // this.openLoading('下载中...');
       this.saveAll();

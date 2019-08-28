@@ -18,8 +18,9 @@ pdfPrint.prototype.print = async function(name){
   let printDom = document.querySelector('.print-wrap');
   let nodes = document.querySelectorAll('.print-wrap > div')
   let svgImages = printDom.querySelectorAll('image');
-  let nodestep = 60 / nodes.length
-  let imgstep = 30/ svgImages.length;
+  let nodestep = 50 / nodes.length
+  let imgstep = 50 / svgImages.length;
+  console.log(imgstep,nodestep)
   // 先将svg中image标签的href转为base64;
   if(svgImages.length > 0){
     let converToBase64pormiseList = [];
@@ -28,10 +29,10 @@ pdfPrint.prototype.print = async function(name){
     });
 
   // 将图片转换为base64,不管有没有成功，都会往下走
-    await Promise.all(converToBase64pormiseList.map(p => p.then((url) => {this.setPro(this.progress + imgstep);return url}).catch(e => {console.log('图片未加载成功')})));
+    await Promise.all(converToBase64pormiseList.map(p => p.catch(e => {console.log('图片未加载成功')})));
   }
 
-  this.setPro(30)
+  this.setPro(50)
 
 
   let doc = new jsPDF({ orientation: 'landscape', format: 'a3', unit: 'mm' });
@@ -44,7 +45,6 @@ pdfPrint.prototype.print = async function(name){
   
   // 执行domtoimg
   const dataUrlList = await Promise.all(promiseList.map(p => p.then((url) => {this.setPro(this.progress + nodestep);return url}).catch(e => {console.log(e)})));
-  this.setPro(90);
   dataUrlList.forEach((dataUrl, index) => {
     doc.addImage(dataUrl, 'JPEG', 0, 0, 420, 297);
     if (index < dataUrlList.length - 1) {

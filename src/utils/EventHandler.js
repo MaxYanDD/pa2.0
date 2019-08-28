@@ -9,7 +9,8 @@ function destroyed() {
 
 function preventMouseDown(e) {
   console.log('mouseDown');
-  let isColorPicker = e.target.classList.contains('el-color-picker__panel') || e.target.classList.contains('el-dropdown-menu') || parentHas(e);
+  // let isColorPicker = e.target.classList.contains('el-color-picker__panel') || e.target.classList.contains('el-dropdown-menu') || parentHas(e);
+  let isColorPicker = e.target.classList.contains('el-dropdown-menu') || parentHas(e);
   if (isColorPicker) {
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -24,7 +25,8 @@ function parentHas(e) {
     has = false;
   while (++i < L) {
     current = path[i];
-    has = current.classList.contains('el-color-picker__panel') || current.classList.contains('el-dropdown-menu');
+    // has = current.classList.contains('el-color-picker__panel') || current.classList.contains('el-dropdown-menu');
+    has = current.classList.contains('el-dropdown-menu');
     if (has) break;
     if (current === document.body) break;
   }

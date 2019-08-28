@@ -58,7 +58,24 @@
             v-on:click="updataValue(color)"
           ></li>
         </ul>
-        <h3 v-on:click="triggerHtml5Color">更多颜色...</h3>
+        <h3>自定义</h3>
+        <ul class="tColor">
+          <li
+            v-for="(color, index) of cusColor"
+            :key="index"
+            v-bind:style="{ backgroundColor: color }"
+            v-on:mouseover="hoveColor = color"
+            v-on:mouseout="hoveColor = null"
+            v-on:click="updataValue(color)"
+          ></li>
+          <li class="add-color">
+            <i class="iconfont icon-add2"></i>
+            <div class="pickerbox">
+              <el-color-picker v-model="addColor" show-alpha color-format="rgb" size="mini" @change="addCus"></el-color-picker>
+            </div>
+          </li>
+        </ul>
+        <!-- <h3 v-on:click="triggerHtml5Color">更多颜色...</h3> -->
       </div>
     </div>
   </div>
@@ -96,7 +113,10 @@ export default {
       colorConfig: [['#7f7f7f', '#f2f2f2'], ['#0d0d0d', '#808080'], ['#1c1a10', '#ddd8c3'], ['#0e243d', '#c6d9f0'], ['#233f5e', '#dae5f0'], ['#632623', '#f2dbdb'], ['#4d602c', '#eaf1de'], ['#3f3150', '#e6e0ec'], ['#1e5867', '#d9eef3'], ['#99490f', '#fee9da']],
       // 标准颜色
       bColor: ['#c21401', '#ff1e02', '#ffc12a', '#ffff3a', '#90cf5b', '#00af57', '#00afee', '#0071be', '#00215f', '#72349d'],
-      html5Color: this.value
+      html5Color: this.value,
+      //自定义颜色
+      cusColor:[],
+      addColor: '#fff'
     };
   },
   computed: {
@@ -126,6 +146,11 @@ export default {
     }
   },
   methods: {
+    addCus(color){
+      if(color){
+        this.cusColor.push(color);
+      }
+    },
     triggerHtml5Color() {
       this.$refs.html5Color.click();
     },
@@ -256,9 +281,19 @@ export default {
       margin: 0 2px;
       transition: all 0.3s ease;
     }
-    li:hover {
+    li:not(.add-color):hover {
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
       transform: scale(1.3);
+    }
+    .add-color{
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      line-height: 1;
+      i{
+        float: left;
+        font-size: 15px;
+      }
     }
   }
   .bColor {
