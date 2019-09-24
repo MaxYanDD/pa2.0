@@ -16,7 +16,7 @@
           <div
             v-for="(xml,index) in xmlList"
             :key="index"
-            @click="(e)=>append(e,index)"
+            @click="(e)=>appendXml(e,index)"
             class="temp-item"
           >
             <div class="svg-item" :ref="index"></div>
@@ -28,7 +28,6 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable';
 export default {
   data() {
     return {
@@ -79,7 +78,6 @@ export default {
     this.drawThumb();
   },
   components: {
-    draggable
   },
   methods: {
     changeMenu(index) {
@@ -88,8 +86,7 @@ export default {
         this.drawThumb();
       });
     },
-    append(e, index) {
-      //由于drag冲突,模拟双击
+    appendXml(e, index) {
       let { xml, title } = this.xmlList[index];
       this.$bus.$emit('addXml', title, xml);
     },

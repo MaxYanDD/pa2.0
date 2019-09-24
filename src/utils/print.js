@@ -66,6 +66,7 @@ pdfPrint.prototype.converToBase64 = function(svgimg,imgstep) {
     let img = new Image();
     img.setAttribute('crossOrigin', 'Anonymous');
     img.onload = () => {
+      this.setPro(this.progress + imgstep)
       scale = /\.svg/.test(imgsrc) ? 4 : 2;
       const { width, height } = img;
       canvas.width = width*scale;
@@ -74,7 +75,6 @@ pdfPrint.prototype.converToBase64 = function(svgimg,imgstep) {
       svgimg.href.baseVal = canvas.toDataURL('image/png');
       resolve()
       canvas = null;
-      this.setPro(this.progress + imgstep)
     };
     img.onerror = () => {
       console.log('img onerror')

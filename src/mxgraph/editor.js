@@ -1,6 +1,6 @@
 import * as mxgraph from 'mxgraph';
 import _Graph from './graph';
-const { mxGraph, mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxTemporaryCellStates, mxResources, mxUtils, mxConstants, mxPoint, mxCodec, mxPrintPreview, mxUndoManager, mxClipboard, mxRectangle } = mxgraph();
+const { mxImage, mxGraph, mxClient, mxKeyHandler, mxCell, mxEventObject, mxGeometry, mxEvent, mxTemporaryCellStates, mxResources, mxUtils, mxConstants, mxPoint, mxCodec, mxPrintPreview, mxUndoManager, mxClipboard, mxRectangle } = mxgraph();
 
 function Editor(bus) {
   this.$bus = bus;
@@ -28,9 +28,7 @@ Editor.prototype.loadGraphs = function(graphs, id) {
 
   this.graphs.map(graph => {
     this.bindListener(graph);
-    if (graph._xml) {
-      this.loadGraphXml(graph._xml, graph);
-    }
+    this.loadGraphXml(graph);
   });
   this.$bus.$emit('drawThumb');
 };
@@ -41,7 +39,7 @@ Editor.prototype.loadGraphs = function(graphs, id) {
 Editor.prototype.createGraph = function(xml, container) {
   if (container) {
     container.innerHTML = '';
-    return new _Graph(xml.id * 1, xml.xml, container, null, null, null, this);
+    return new _Graph(xml.id * 1, xml.xml, container, null, null, null, this,xml.bgColor,xml.bgImgSrc);
   }
 };
 
@@ -52,7 +50,7 @@ Editor.prototype.addGraph = function(graph) {
   this.graphs.push(graph);
   this.bindListener(graph);
   if (graph._xml) {
-    this.loadGraphXml(graph._xml, graph);
+    this.loadGraphXml(graph);
   }
 };
 
@@ -154,34 +152,6 @@ Editor.prototype.bindKeyHandler = function(graph) {
   return keyHandler;
 };
 
-Editor.prototype.deleteGraph = function(index) {
-  this.graphs = this.graphs.filter(graph => !(graph.container.dataset.id == index));
-};
-/**
- * 撤销操作
- */
-Editor.prototype.undo = function() {
-  try {
-    var graph = this.activeGraph;
-    //如果在编辑文字，撤销的话就撤销输入，如果不在编辑，就撤销操作
-
-    if (graph.isEditing()) {
-      var value = graph.cellEditor.textarea.innerHTML;
-      document.execCommand('undo', false, null);
-
-      if (value == graph.cellEditor.textarea.innerHTML) {
-        // 如果文本框内没有文本
-        graph.stopEditing(true);
-        this.undoManager.undo(graph.id);
-      }
-    } else {
-      this.undoManager.undo(graph.id);
-    }
-  } catch (e) {
-    // ignore all errors
-  }
-};
-
 Editor.prototype.getGraphById = function(id) {
   let graph;
   for (let i = 0; i < this.graphs.length; i++) {
@@ -192,21 +162,9 @@ Editor.prototype.getGraphById = function(id) {
   }
   return graph;
 };
-/**
- * 重做
- */
-Editor.prototype.redo = function() {
-  try {
-    var graph = this.activeGraph;
 
-    if (graph.isEditing()) {
-      document.execCommand('redo', false, null);
-    } else {
-      this.undoManager.redo(graph.id);
-    }
-  } catch (e) {
-    // ignore all errors
-  }
+Editor.prototype.deleteGraph = function(index) {
+  this.graphs = this.graphs.filter(graph => !(graph.container.dataset.id == index));
 };
 
 /**
@@ -235,6 +193,50 @@ Editor.prototype.deletCells = function(evt) {
     }
   }
 };
+/**
+ * 撤销操作
+ */
+Editor.prototype.undo = function() {
+  try {
+    var graph = this.activeGraph;
+    //如果在编辑文字，撤销的话就撤销输入，如果不在编辑，就撤销操作
+
+    if (graph.isEditing()) {
+      var value = graph.cellEditor.textarea.innerHTML;
+      document.execCommand('undo', false, null);
+
+      if (value == graph.cellEditor.textarea.innerHTML) {
+        // 如果文本框内没有文本
+        graph.stopEditing(true);
+        this.undoManager.undo(graph.id);
+      }
+    } else {
+      this.undoManager.undo(graph.id);
+    }
+  } catch (e) {
+    // ignore all errors
+  }
+};
+
+
+/**
+ * 重做
+ */
+Editor.prototype.redo = function() {
+  try {
+    var graph = this.activeGraph;
+
+    if (graph.isEditing()) {
+      document.execCommand('redo', false, null);
+    } else {
+      this.undoManager.redo(graph.id);
+    }
+  } catch (e) {
+    // ignore all errors
+  }
+};
+
+
 
 /**
  * copy;
@@ -384,7 +386,7 @@ Editor.prototype.insertText = function(evt) {
   var style = 'text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000';
   var width = 150;
   var height = 60;
-  var value = '双击可输入文本';
+  var value = '双击可编辑文本';
   var title = 'Text';
   var showLabel = null;
   var allowCellsInserted = true;
@@ -501,6 +503,13 @@ Editor.prototype.insertTable = function(DomString, w, h) {
   this.createShape('text;html=1;strokeColor=none;fill=none;overflow=fill;rounded=0;', w, h, DomString, 'Table', null, true, null);
 };
 
+/**
+ * 插入模块
+ */
+Editor.prototype.insertModel = function(DomString, w, h) {
+  return this.createShape('text;html=1;strokeColor=none;fill=none;overflow=fill;rounded=0;', w, h, DomString, 'Table', null, true, null);
+};
+
 /*
  * 创建图形
  */
@@ -514,7 +523,7 @@ Editor.prototype.createShape = function(style, width, height, value, title, show
   var pt = graph.getFreeInsertPoint();
   var x = pt.x;
   var y = pt.y;
-
+  console.log(cells[0]);
   cells = graph.getImportableCells(cells);
   if (cells.length > 0) {
     graph.stopEditing();
@@ -582,6 +591,8 @@ Editor.prototype.createShape = function(style, width, height, value, title, show
     //   this.editorUi.hoverIcons.update(graph.view.getState(graph.getSelectionCell()));
     // }
   }
+
+  return select;
 };
 
 Editor.prototype.createEdge = function(style, width, height, value, title, showLabel, allowCellsInserted, evt) {
@@ -928,6 +939,36 @@ Editor.prototype.setLineHeight = function(value) {
 };
 
 /**
+ * 设置背景图片
+ */
+Editor.prototype.setBackgroundImage = function(src){
+  var graph = this.activeGraph;
+  var img = new Image();
+		
+  img.onload = () =>{
+    graph.setBackgroundImage(new mxImage(img.src,1076,760));
+	  graph.view.validateBackgroundImage();
+
+    graph.fireEvent(new mxEventObject('backgroundImageChanged'));
+    this.$bus.$emit('changeBackgroundImage',src);
+    this.$bus.$emit('modelChange');
+  };
+
+  img.src = src;
+};
+
+/**
+ * 设置背景颜色
+ */
+Editor.prototype.setBackgroundColor = function(color){
+  var graph = this.activeGraph
+  graph.background = color;
+	graph.view.validateBackgroundPage();
+
+	graph.fireEvent(new mxEventObject('backgroundColorChanged'));
+}
+
+/**
  * 样式改变了后执行
  */
 Editor.prototype.styleChanged = function(evt) {
@@ -1038,10 +1079,17 @@ Editor.prototype.getGraphXml = function(graph) {
 /**
  * 回填xml格式page
  */
-Editor.prototype.loadGraphXml = function(xml, graph) {
-  if (xml) {
-    var doc = mxUtils.parseXml(xml);
+Editor.prototype.loadGraphXml = function(graph) {
+  if (graph._xml) {
+    var doc = mxUtils.parseXml(graph._xml);
     graph.importGraphModel(doc.documentElement);
+  }
+  if(graph._bgColor){
+    console.log(graph._bgColor)
+    this.setBackgroundColor(graph._bgColor);
+  }
+  if(graph._bgImgSrc){
+    this.setBackgroundImage(graph._bgImgSrc);
   }
 };
 
@@ -1153,12 +1201,28 @@ Editor.prototype.createSvgStr = function(graph) {
   div.className="print-page";
   div.style.cssText = `
      overflow: hidden; background:#fff;
-     width: 420mm;height:296.5mm;
+     width: 420mm;height:297mm;
     `;
     //margin: 0 auto 20px;
-  this.addGraphFragment(div, graph, 1.478);
-
+  // this.addGraphFragment(div, graph, );
+  this.copySvgToThumb(graph,1.478,div);
   return div.outerHTML;
+};
+
+Editor.prototype.copySvgToThumb = function(graph,scale,container){
+  var view = graph.view;
+  var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.style.cssText = 'width:100%;height:100%';
+  var root = document.createElementNS('http://www.w3.org/2000/svg','g');
+  var bg = view.getBackgroundPane().cloneNode(true);
+  var els = view.getDrawPane().cloneNode(true);
+  var bgrect = bg.querySelector('g rect');
+  var x = bgrect.x.animVal.value;
+  var y = bgrect.y.animVal.value;
+  root.setAttribute('transform',`translate(${-x*scale},${-y*scale}) scale(${scale})`);
+  root.appendChild(bg).appendChild(els)
+  svg.appendChild(root);
+  container.appendChild(svg);
 };
 
 Editor.prototype.addGraphFragment = function(div, sourceGraph, scale) {

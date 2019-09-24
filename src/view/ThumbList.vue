@@ -23,7 +23,7 @@
               @contextmenu.prevent="changeActive(index)"
             >
               <div class="svg-wrap" :ref="index"></div>
-              <div class="thumb-name" style="cursor:pointer">
+              <div class="thumb-name" style="cursor:pointer" >
                 <input :value="xml.title" @input="changePageTitle($event)" />
               </div>
             </div>
@@ -99,6 +99,7 @@ export default {
     },
     //创建缩略图
     createThumb(index) {
+      index = index || this.activeIndex;
       const graph = this.$Editor.findGraphByIndex(index);
       const pageWidth = graph.pageFormat.width;
       const pageHeight = graph.pageFormat.height;
@@ -107,7 +108,8 @@ export default {
 
       let scaleX = thumbWidth / pageWidth;
       this.$refs[index][0].innerHTML = '';
-      this.$Editor.addGraphFragment(this.$refs[index][0], graph, scaleX);
+      this.$Editor.copySvgToThumb(graph,scaleX,this.$refs[index][0])
+      // this.$Editor.addGraphFragment(this.$refs[index][0], graph, scaleX);
     },
     // 生成缩略图
     drawThumb() {

@@ -542,9 +542,9 @@
     }
 
     // Adds all required stylesheets and namespaces
-    if (mxLoadStylesheets) {
-      mxClient.link('stylesheet', mxClient.basePath + '/css/common.css');
-    }
+    // if (mxLoadStylesheets) {
+    //   mxClient.link('stylesheet', mxClient.basePath + '/css/common.css');
+    // }
 
     /**
      * Variable: languages
@@ -13456,7 +13456,8 @@
      * Constructs a new undo manager with the given history size. If no history
      * size is given, then a default size of 100 steps is used.
      */
-    function mxUndoManager(size) {
+    function mxUndoManager(size,editor) {
+      this.editor = editor;
       this.size = (size != null) ? size : 100;
       this.clear();
     };
@@ -13523,9 +13524,16 @@
      * 
      * Undoes the last change.
      */
-    mxUndoManager.prototype.undo = function () {
+    mxUndoManager.prototype.undo = function (id) {
       while (this.indexOfNextAdd > 0) {
         var edit = this.history[--this.indexOfNextAdd];
+        var graphId = edit.graph.id;
+
+        if(graphId != id){
+          var index = this.editor.getGraphById(graphId).container.dataset.id;
+          this.editor.$bus.$emit('changeActive',graphId,index)
+        }
+
         edit.undo();
 
         if (edit.isSignificant()) {
@@ -13549,11 +13557,19 @@
      * 
      * Redoes the last change.
      */
-    mxUndoManager.prototype.redo = function () {
+    mxUndoManager.prototype.redo = function (id) {
       var n = this.history.length;
 
       while (this.indexOfNextAdd < n) {
         var edit = this.history[this.indexOfNextAdd++];
+
+        var graphId = edit.graph.id;
+        
+        if(graphId != id){
+          var index = this.editor.getGraphById(graphId).container.dataset.id;
+          this.editor.$bus.$emit('changeActive',graphId,index)
+        }
+
         edit.redo();
 
         if (edit.isSignificant()) {
@@ -40389,10 +40405,9 @@
         bounds.width /= sc;
         bounds.height /= sc;
 
-        var hpages = Math.max(1, Math.ceil((bounds.width + this.x0) / availableWidth));
-        var vpages = Math.max(1, Math.ceil((bounds.height + this.y0) / availableHeight));
+        var hpages = Math.max(1, Math.floor((bounds.width + this.x0) / availableWidth));
+        var vpages = Math.max(1, Math.floor((bounds.height + this.y0) / availableHeight));
         this.pageCount = hpages * vpages;
-
         var writePageSelector = mxUtils.bind(this, function () {
           if (this.pageSelector && (vpages > 1 || hpages > 1)) {
             var table = this.createPageSelector(vpages, hpages);
@@ -40722,7 +40737,7 @@
           div.style.height = h + 'px';
           div.style.overflow = 'hidden';
           div.style.pageBreakInside = 'avoid';
-
+          div.style.pageBreakAfter = 'avoid';
           // IE8 uses above branch currently
           if (doc.documentMode == 8) {
             div.style.position = 'relative';
@@ -46707,10 +46722,10 @@
     mxGraphView.prototype.validateBackgroundPage = function () {
       if (this.graph.pageVisible) {
         var bounds = this.getBackgroundPageBounds();
+
         if (this.backgroundPageShape == null) {
-          this.backgroundPageShape = new mxRectangleShape(bounds, 'white', '', 0);
+          this.backgroundPageShape = new mxRectangleShape(bounds, this.graph._bgColor || 'white', '', 0);
           // this.backgroundPageShape.transform = new mxPoint(20,20);
-          console.log(this.backgroundPageShape);
           this.backgroundPageShape.scale = this.scale;
           this.backgroundPageShape.isShadow = false;
           this.backgroundPageShape.dialect = this.graph.dialect;
@@ -46747,6 +46762,7 @@
         } else {
           this.backgroundPageShape.scale = this.scale;
           this.backgroundPageShape.bounds = bounds;
+          this.backgroundPageShape.fill = this.graph.background;
           this.backgroundPageShape.redraw();
         }
       } else if (this.backgroundPageShape != null) {
@@ -49367,11 +49383,11 @@
      * Installs the required language resources at class
      * loading time.
      */
-    if (mxLoadResources) {
-      mxResources.add(mxClient.basePath + '/resources/graph');
-    } else {
-      mxClient.defaultBundles.push(mxClient.basePath + '/resources/graph');
-    }
+    // if (mxLoadResources) {
+    //   mxResources.add(mxClient.basePath + '/resources/graph');
+    // } else {
+    //   mxClient.defaultBundles.push(mxClient.basePath + '/resources/graph');
+    // }
 
     /**
      * Extends mxEventSource.
@@ -53935,7 +53951,6 @@
      * recurse - Boolean indicating if the child cells should be scaled.
      */
     mxGraph.prototype.scaleCell = function (cell, dx, dy, recurse) {
-      console.log('scaleCell');
       var geo = this.model.getGeometry(cell);
 
       if (geo != null) {
@@ -63066,7 +63081,6 @@
      */
     mxGraphHandler.prototype.mouseMove = function (sender, me) {
       var graph = this.graph;
-
       if (!me.isConsumed() && graph.isMouseDown && this.cell != null &&
         this.first != null && this.bounds != null) {
         // Stops moving if a multi touch event is received
@@ -63153,7 +63167,6 @@
             if (this.connectOnDrop && cell != null && this.cells.length == 1 &&
               graph.getModel().isVertex(cell) && graph.isCellConnectable(cell)) {
               state = graph.getView().getState(cell);
-
               if (state != null) {
                 var error = graph.getEdgeValidationError(null, this.cell, cell);
                 var color = (error == null) ?
@@ -66777,7 +66790,7 @@
      * 
      * Specifies if events are handled. Default is true.
      */
-    mxConstraintHandler.prototype.enabled = true;
+    mxConstraintHandler.prototype.enabled = false;
 
     /**
      * Variable: highlightColor
@@ -66949,6 +66962,7 @@
      */
     mxConstraintHandler.prototype.update = function (me, source, existingEdge, point) {
       if (this.isEnabled() && !this.isEventIgnored(me)) {
+
         // Lazy installation of mouseleave handler
         if (this.mouseleaveHandler == null && this.graph.container != null) {
           this.mouseleaveHandler = mxUtils.bind(this, function () {
@@ -66977,7 +66991,6 @@
         this.currentConstraint = null;
         this.currentPoint = null;
         var minDistSq = null;
-
         if (this.focusIcons != null && this.constraints != null &&
           (state == null || this.currentFocus == state)) {
           var cx = mouse.getCenterX();
@@ -70771,10 +70784,9 @@
       // Computes the points for the edge style and terminals
       var sourceState = (this.isSource) ? terminalState : this.state.getVisibleTerminalState(true);
       var targetState = (this.isTarget) ? terminalState : this.state.getVisibleTerminalState(false);
-
+     
       var sourceConstraint = this.graph.getConnectionConstraint(edge, sourceState, true);
       var targetConstraint = this.graph.getConnectionConstraint(edge, targetState, false);
-
       var constraint = this.constraintHandler.currentConstraint;
 
       if (constraint == null && outline) {
@@ -70794,48 +70806,50 @@
         }
       }
 
-      if (this.outlineConnect && this.marker.highlight != null && this.marker.highlight.shape != null) {
-        var s = this.graph.view.scale;
+      // if (this.outlineConnect && this.marker.highlight != null && this.marker.highlight.shape != null) {
 
-        if (this.constraintHandler.currentConstraint != null &&
-          this.constraintHandler.currentFocus != null) {
-          this.marker.highlight.shape.stroke = (outline) ? mxConstants.OUTLINE_HIGHLIGHT_COLOR : 'transparent';
-          this.marker.highlight.shape.strokewidth = mxConstants.OUTLINE_HIGHLIGHT_STROKEWIDTH / s / s;
-          this.marker.highlight.repaint();
-        } else if (this.marker.hasValidState()) {
-          this.marker.highlight.shape.stroke = (this.marker.getValidState() == me.getState()) ?
-            mxConstants.DEFAULT_VALID_COLOR : 'transparent';
-          this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / s / s;
-          this.marker.highlight.repaint();
-        }
-      }
+      //   var s = this.graph.view.scale;
 
-      if (this.isSource) {
-        sourceConstraint = constraint;
-      } else if (this.isTarget) {
-        targetConstraint = constraint;
-      }
+      //   if (this.constraintHandler.currentConstraint != null &&
+      //     this.constraintHandler.currentFocus != null) {
+      //     this.marker.highlight.shape.stroke = (outline) ? mxConstants.OUTLINE_HIGHLIGHT_COLOR : 'transparent';
+      //     this.marker.highlight.shape.strokewidth = mxConstants.OUTLINE_HIGHLIGHT_STROKEWIDTH / s / s;
+      //     this.marker.highlight.repaint();
+      //   } else if (this.marker.hasValidState()) {
+      //     this.marker.highlight.shape.stroke = (this.marker.getValidState() == me.getState()) ?
+      //       mxConstants.DEFAULT_VALID_COLOR : 'transparent';
+      //     this.marker.highlight.shape.strokewidth = mxConstants.HIGHLIGHT_STROKEWIDTH / s / s;
+      //     this.marker.highlight.repaint();
+      //   }
+      // }
+      // if (this.isSource) {
+      //   sourceConstraint = constraint;
+      // } else if (this.isTarget) {
+      //   targetConstraint = constraint;
+      // }
 
-      if (this.isSource || this.isTarget) {
-        if (constraint != null && constraint.point != null) {
-          edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_X : mxConstants.STYLE_ENTRY_X] = constraint.point.x;
-          edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_Y : mxConstants.STYLE_ENTRY_Y] = constraint.point.y;
-        } else {
-          delete edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_X : mxConstants.STYLE_ENTRY_X];
-          delete edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_Y : mxConstants.STYLE_ENTRY_Y];
-        }
-      }
+      // if (this.isSource || this.isTarget) {
 
-      edge.setVisibleTerminalState(sourceState, true);
-      edge.setVisibleTerminalState(targetState, false);
+      //   if (constraint != null && constraint.point != null) {
+      //     edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_X : mxConstants.STYLE_ENTRY_X] = constraint.point.x;
+      //     edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_Y : mxConstants.STYLE_ENTRY_Y] = constraint.point.y;
+      //   } else {
 
-      if (!this.isSource || sourceState != null) {
-        edge.view.updateFixedTerminalPoint(edge, sourceState, true, sourceConstraint);
-      }
+      //     delete edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_X : mxConstants.STYLE_ENTRY_X];
+      //     delete edge.style[(this.isSource) ? mxConstants.STYLE_EXIT_Y : mxConstants.STYLE_ENTRY_Y];
+      //   }
+      // }
 
-      if (!this.isTarget || targetState != null) {
-        edge.view.updateFixedTerminalPoint(edge, targetState, false, targetConstraint);
-      }
+      // edge.setVisibleTerminalState(sourceState, true);
+      // edge.setVisibleTerminalState(targetState, false);
+
+      // if (!this.isSource || sourceState != null) {
+      //   edge.view.updateFixedTerminalPoint(edge, sourceState, true, sourceConstraint);
+      // }
+
+      // if (!this.isTarget || targetState != null) {
+      //   edge.view.updateFixedTerminalPoint(edge, targetState, false, targetConstraint);
+      // }
 
       if ((this.isSource || this.isTarget) && terminalState == null) {
         edge.setAbsoluteTerminalPoint(point, this.isSource);
@@ -70845,8 +70859,8 @@
         }
       }
 
-      edge.view.updatePoints(edge, this.points, sourceState, targetState);
-      edge.view.updateFloatingTerminalPoints(edge, sourceState, targetState);
+      // edge.view.updatePoints(edge, this.points, sourceState, targetState);
+      // edge.view.updateFloatingTerminalPoints(edge, sourceState, targetState);
     };
 
     /**
@@ -70878,7 +70892,6 @@
         } else {
           this.points = this.getPreviewPoints(this.currentPoint, me);
           var terminalState = (this.isSource || this.isTarget) ? this.getPreviewTerminalState(me) : null;
-
           if (this.constraintHandler.currentConstraint != null &&
             this.constraintHandler.currentFocus != null &&
             this.constraintHandler.currentPoint != null) {
@@ -70902,7 +70915,8 @@
           }
 
           var clone = this.clonePreviewState(this.currentPoint, (terminalState != null) ? terminalState.cell : null);
-          this.updatePreviewState(clone, this.currentPoint, terminalState, me, outline);
+          // this.updatePreviewState(clone, this.currentPoint, terminalState, me, outline);
+          this.updatePreviewState(clone, this.currentPoint, null, me, null);
 
           // Sets the color of the preview to valid or invalid, updates the
           // points of the preview and redraws
@@ -70976,7 +70990,8 @@
               terminal = this.marker.validState.cell;
             }
 
-            if (terminal != null) {
+           // if (terminal != null) { 
+            if (false) { // 不执行这个if分支,阻止吸附效果
               var model = this.graph.getModel();
               var parent = model.getParent(edge);
 
@@ -71406,7 +71421,6 @@
           }
         }
       }
-
       this.drawPreview();
     };
 
@@ -71427,7 +71441,6 @@
       // Shows or hides the label handle depending on the label
       var lab = this.graph.getLabel(cell);
       this.labelShape.visible = (lab != null && lab.length > 0 && this.graph.isLabelMovable(cell));
-
       if (this.bends != null && this.bends.length > 0) {
         var n = this.abspoints.length - 1;
 
@@ -72022,86 +72035,86 @@
      * 
      * Overridden to perform optimization of the edge style result.
      */
-    mxEdgeSegmentHandler.prototype.updatePreviewState = function (edge, point, terminalState, me) {
-      mxEdgeHandler.prototype.updatePreviewState.apply(this, arguments);
+    // mxEdgeSegmentHandler.prototype.updatePreviewState = function (edge, point, terminalState, me) {
+    //   mxEdgeHandler.prototype.updatePreviewState.apply(this, arguments);
 
-      // Checks and corrects preview by running edge style again
-      if (!this.isSource && !this.isTarget) {
-        point = this.convertPoint(point.clone(), false);
-        var pts = edge.absolutePoints;
-        var pt0 = pts[0];
-        var pt1 = pts[1];
+    //   // Checks and corrects preview by running edge style again
+    //   if (!this.isSource && !this.isTarget) {
+    //     point = this.convertPoint(point.clone(), false);
+    //     var pts = edge.absolutePoints;
+    //     var pt0 = pts[0];
+    //     var pt1 = pts[1];
 
-        var result = [];
+    //     var result = [];
 
-        for (var i = 2; i < pts.length; i++) {
-          var pt2 = pts[i];
+    //     for (var i = 2; i < pts.length; i++) {
+    //       var pt2 = pts[i];
 
-          // Merges adjacent segments only if more than 2 to allow for straight edges
-          if ((Math.round(pt0.x - pt1.x) != 0 || Math.round(pt1.x - pt2.x) != 0) &&
-            (Math.round(pt0.y - pt1.y) != 0 || Math.round(pt1.y - pt2.y) != 0)) {
-            result.push(this.convertPoint(pt1.clone(), false));
-          }
+    //       // Merges adjacent segments only if more than 2 to allow for straight edges
+    //       if ((Math.round(pt0.x - pt1.x) != 0 || Math.round(pt1.x - pt2.x) != 0) &&
+    //         (Math.round(pt0.y - pt1.y) != 0 || Math.round(pt1.y - pt2.y) != 0)) {
+    //         result.push(this.convertPoint(pt1.clone(), false));
+    //       }
 
-          pt0 = pt1;
-          pt1 = pt2;
-        }
+    //       pt0 = pt1;
+    //       pt1 = pt2;
+    //     }
 
-        var source = this.state.getVisibleTerminalState(true);
-        var target = this.state.getVisibleTerminalState(false);
-        var rpts = this.state.absolutePoints;
+    //     var source = this.state.getVisibleTerminalState(true);
+    //     var target = this.state.getVisibleTerminalState(false);
+    //     var rpts = this.state.absolutePoints;
 
-        // A straight line is represented by 3 handles
-        if (result.length == 0 && (Math.round(pts[0].x - pts[pts.length - 1].x) == 0 ||
-            Math.round(pts[0].y - pts[pts.length - 1].y) == 0)) {
-          result = [point, point];
-        }
-        // Handles special case of transitions from straight vertical to routed
-        else if (pts.length == 5 && result.length == 2 && source != null && target != null &&
-          rpts != null && Math.round(rpts[0].x - rpts[rpts.length - 1].x) == 0) {
-          var view = this.graph.getView();
-          var scale = view.getScale();
-          var tr = view.getTranslate();
+    //     // A straight line is represented by 3 handles
+    //     if (result.length == 0 && (Math.round(pts[0].x - pts[pts.length - 1].x) == 0 ||
+    //         Math.round(pts[0].y - pts[pts.length - 1].y) == 0)) {
+    //       result = [point, point];
+    //     }
+    //     // Handles special case of transitions from straight vertical to routed
+    //     else if (pts.length == 5 && result.length == 2 && source != null && target != null &&
+    //       rpts != null && Math.round(rpts[0].x - rpts[rpts.length - 1].x) == 0) {
+    //       var view = this.graph.getView();
+    //       var scale = view.getScale();
+    //       var tr = view.getTranslate();
 
-          var y0 = view.getRoutingCenterY(source) / scale - tr.y;
+    //       var y0 = view.getRoutingCenterY(source) / scale - tr.y;
 
-          // Use fixed connection point y-coordinate if one exists
-          var sc = this.graph.getConnectionConstraint(edge, source, true);
+    //       // Use fixed connection point y-coordinate if one exists
+    //       var sc = this.graph.getConnectionConstraint(edge, source, true);
 
-          if (sc != null) {
-            var pt = this.graph.getConnectionPoint(source, sc);
+    //       if (sc != null) {
+    //         var pt = this.graph.getConnectionPoint(source, sc);
 
-            if (pt != null) {
-              this.convertPoint(pt, false);
-              y0 = pt.y;
-            }
-          }
+    //         if (pt != null) {
+    //           this.convertPoint(pt, false);
+    //           y0 = pt.y;
+    //         }
+    //       }
 
-          var ye = view.getRoutingCenterY(target) / scale - tr.y;
+    //       var ye = view.getRoutingCenterY(target) / scale - tr.y;
 
-          // Use fixed connection point y-coordinate if one exists
-          var tc = this.graph.getConnectionConstraint(edge, target, false);
+    //       // Use fixed connection point y-coordinate if one exists
+    //       var tc = this.graph.getConnectionConstraint(edge, target, false);
 
-          if (tc) {
-            var pt = this.graph.getConnectionPoint(target, tc);
+    //       if (tc) {
+    //         var pt = this.graph.getConnectionPoint(target, tc);
 
-            if (pt != null) {
-              this.convertPoint(pt, false);
-              ye = pt.y;
-            }
-          }
+    //         if (pt != null) {
+    //           this.convertPoint(pt, false);
+    //           ye = pt.y;
+    //         }
+    //       }
 
-          result = [new mxPoint(point.x, y0), new mxPoint(point.x, ye)];
-        }
+    //       result = [new mxPoint(point.x, y0), new mxPoint(point.x, ye)];
+    //     }
 
-        this.points = result;
+    //     this.points = result;
 
-        // LATER: Check if points and result are different
-        edge.view.updateFixedTerminalPoints(edge, source, target);
-        edge.view.updatePoints(edge, this.points, source, target);
-        edge.view.updateFloatingTerminalPoints(edge, source, target);
-      }
-    };
+    //     // LATER: Check if points and result are different
+    //     edge.view.updateFixedTerminalPoints(edge, source, target);
+    //     edge.view.updatePoints(edge, this.points, source, target);
+    //     edge.view.updateFloatingTerminalPoints(edge, source, target);
+    //   }
+    // };
 
     /**
      * Overriden to merge edge segments.
@@ -72593,8 +72606,8 @@
      * evt - Key event that represents the keystroke.
      */
     mxKeyHandler.prototype.keyDown = function (evt) {
+      
       if (this.isEnabledForEvent(evt)) {
-        
         // Cancels the editing if escape is pressed
         if (evt.keyCode == 27 /* Escape */ ) {
           this.escape(evt);
@@ -74727,11 +74740,11 @@
      * Installs the required language resources at class
      * loading time.
      */
-    if (mxLoadResources) {
-      mxResources.add(mxClient.basePath + '/resources/editor');
-    } else {
-      mxClient.defaultBundles.push(mxClient.basePath + '/resources/editor');
-    }
+    // if (mxLoadResources) {
+    //   mxResources.add(mxClient.basePath + '/resources/editor');
+    // } else {
+    //   mxClient.defaultBundles.push(mxClient.basePath + '/resources/editor');
+    // }
 
     /**
      * Extends mxEventSource.
@@ -77675,7 +77688,6 @@
           obj.removeAttribute('as');
         }
         
-        console.log(obj);
       }
       return obj;
     };

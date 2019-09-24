@@ -8,8 +8,6 @@
     <title>云知光方案助手</title>
     <link rel="stylesheet" href="//at.alicdn.com/t/font_1274999_3anme25lu6j.css" />
     <script src="./static/sanitizer.min.js"></script>
-    <!-- <script src="./static/jspdf.min.js"></script>
-    <script src="./static/dom-to-image.js"></script> -->
   </head>
 
   <body id="override">
@@ -17,13 +15,13 @@
     <!-- built files will be auto injected -->
     <script>
       
-        // window.onbeforeunload = e => {
-        //   e = e || window.event;
-        //   if (e) {
-        //     e.returnValue = '关闭提示';
-        //   }
-        //   return '关闭提示';
-        // };
+        window.onbeforeunload = e => {
+          e = e || window.event;
+          if (e) {
+            e.returnValue = '关闭提示';
+          }
+          return '关闭提示';
+        };
       
     </script>
   </body>

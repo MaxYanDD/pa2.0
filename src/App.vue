@@ -78,11 +78,11 @@ export default {
 
     this.getUserInfo();
 
-    let id = getUrlParams()['id'];
+    const id = getUrlParams()['id'];
 
-    if (IS_DEV) {
-      id = '8482d7309c83';
-    }
+    // if (IS_DEV) {
+    //   id = '8482d7309c83';
+    // }
 
     if (id) {
       this.getPageData(id);
@@ -93,8 +93,9 @@ export default {
         id: 0,
         title: '首页',
         xml: `
-        <mxGraphModel dx="33" dy="45" grid="0" gridSize="10" guides="1" tooltips="0" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1076" pageHeight="760"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="3" value="" style="shape=image;imageAspect=0;aspect=aspect;verticalLabelPosition=bottom;verticalAlign=top;image=http://imgcache.eltmall.com/logo/eltmall.svg;" vertex="1" parent="1"><mxGeometry x="193" y="380" width="690" height="139" as="geometry"/></mxCell><mxCell id="4" value="&lt;span&gt;&lt;font style=&quot;font-size: 66px&quot;&gt;欢迎使用云知光商城方案助手&lt;/font&gt;&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000" vertex="1" parent="1"><mxGeometry x="75" y="111" width="926" height="108" as="geometry"/></mxCell></root></mxGraphModel>
-        `
+          <mxGraphModel dx="33" dy="45" grid="0" gridSize="10" guides="1" tooltips="0" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1076" pageHeight="760"><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="3" value="" style="shape=image;imageAspect=0;aspect=aspect;verticalLabelPosition=bottom;verticalAlign=top;image=http://imgcache.eltmall.com/logo/eltmall.svg;" vertex="1" parent="1"><mxGeometry x="193" y="380" width="690" height="139" as="geometry"/></mxCell><mxCell id="4" value="&lt;span&gt;&lt;font style=&quot;font-size: 66px&quot;&gt;欢迎使用云知光商城方案助手&lt;/font&gt;&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#000" vertex="1" parent="1"><mxGeometry x="75" y="111" width="926" height="108" as="geometry"/></mxCell></root></mxGraphModel>
+          `,
+        bgColor: '#fff'
       });
 
       this.$nextTick(() => {
@@ -114,6 +115,8 @@ export default {
     // this.$bus.$on('download', this.download);
     this.$bus.$on('download', this.downloadPdfFrontEnd);
     this.$bus.$on('dragAdd', this.dragAdd);
+    this.$bus.$on('changeBackgroundImage', this.changeBackgroundImage);
+    this.$bus.$on('changeBackgroundColor', this.changeBackgroundColor);
     this.keyDownHandler();
   },
   mounted() {},
@@ -129,6 +132,12 @@ export default {
       this.hasModify = true;
     },
 
+    changeBackgroundImage(src){
+      this.data.xmls[this.activeIndex].bgImgSrc = src
+    },
+    changeBackgroundColor(color){
+      this.data.xmls[this.activeIndex].bgColor = color
+    },
     // 切换page
     changeActive(index) {
       this.stopEditing();
@@ -366,7 +375,7 @@ export default {
       let divForPrint = document.createElement('div');
       divForPrint.className = 'print-wrap';
       divForPrint.innerHTML = this.data.pages.join('');
-      divForPrint.style.cssText = `position:fixed;top:0;left:0;z-index:-1;`;
+      divForPrint.style.cssText = `position:fixed;top:0;left:0;z-index:-10;`;
       document.body.appendChild(divForPrint);
 
       this.pdfPrint = new pdfPrint();
@@ -401,7 +410,7 @@ export default {
 
 .content {
   position: absolute;
-  top: 45px;
+  top: 50px;
   left: 0;
   bottom: 0;
   right: 0;

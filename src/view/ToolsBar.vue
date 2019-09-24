@@ -1,15 +1,15 @@
 <template>
   <div class="toolsbar" @mousedown.prevent="mouseDownHandler">
-    <ToolTip content="保存(Ctrl+S)" class="tool-item">
+    <!-- <ToolTip content="保存(Ctrl+S)" class="tool-item">
       <a @click="()=>{this.$bus.$emit('save')}">
         <i class="iconfont icon-baocun"></i>
       </a>
     </ToolTip>
-    <!-- <ToolTip class="tool-item" content="打印(待开发)">
+    <ToolTip class="tool-item" content="打印(待开发)">
       <a>
         <i class="iconfont icon-dayin"></i>
       </a>
-    </ToolTip>-->
+    </ToolTip>
     <div class="toolbar-separator"></div>
     <ToolTip class="tool-item" content="撤销(Ctrl+Z)">
       <a @click="(e) => this.$Editor.undo()">
@@ -37,7 +37,7 @@
     <ToolTip class="tool-item" content="图片">
       <a @click="insertImage">
         <i class="iconfont icon-tupian"></i>
-        <!-- <i class="iconfont icon-arrow-drop-down"></i> -->
+        <i class="iconfont icon-arrow-drop-down"></i>
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="形状（待开发）">
@@ -46,10 +46,10 @@
         <i class="iconfont icon-arrow-drop-down"></i>
       </a>
     </ToolTip>
-    <ToolTip class="tool-item" content="直线">
+    <ToolTip class="tool-item" content="线">
       <a @click="() => this.$Editor.insertLine()">
         <i class="iconfont icon-Line-Tool"></i>
-        <!-- <i class="iconfont icon-arrow-drop-down"></i> -->
+        <i class="iconfont icon-arrow-drop-down"></i>
       </a>
     </ToolTip>
     <ToolTip class="tool-item" content="表格">
@@ -57,7 +57,6 @@
         <i class="iconfont icon-table"></i>
       </a>
     </ToolTip>
-    <!-- 编辑表格弹窗 -->
     <el-dialog
       title="编辑表格"
       top="5vh"
@@ -68,12 +67,11 @@
       class="el-dialog-override el-dialog-override-table"
     >
       <TableEditor @close="() => this.dialogTableVisible = !this.dialogTableVisible" />
-    </el-dialog>
+    </el-dialog>-->
 
     <!-- 文本框和多边形可用的编辑选项 -->
     <div v-show="currentshape == 'label'">
       <div class="modifier" v-show="isContentEditing">
-        <div class="toolbar-separator"></div>
         <ToolTip class="tool-item" content="字体" disabled>
           <el-dropdown
             trigger="hover"
@@ -142,11 +140,12 @@
             trigger="click"
             :append-to-body="true"
             popper-class="color-popover"
+            v-model="foreColorShow"
           >
             <div @mousedown.prevent>
               <ColorPicker
                 :value="currentShapeStyle.fontColor"
-                @change="color => this.$Editor.changFontStyle('foreColor', color)"
+                @change="color => {this.$Editor.changFontStyle('foreColor', color);foreColorShow = false}"
               />
               <!-- <ColorPicker theme="light" @changeColor="changFontColor" /> -->
             </div>
@@ -190,24 +189,25 @@
         </ToolTip>
       </div>
       <div class="modifier" v-show="!isContentEditing">
-        <div class="toolbar-separator"></div>
         <ToolTip class="tool-item" content="填充颜色">
           <el-popover
             placement="bottom"
             trigger="click"
             :append-to-body="true"
             popper-class="color-popover"
+            v-model="fillColorShow"
           >
             <div @mousedown.prevent>
               <ColorPicker
                 :value="currentShapeStyle.fillColor"
-                @change="fillColor => changeStyle('fillColor',fillColor)"
+                @change="fillColor => {changeStyle('fillColor',fillColor);fillColorShow=false}"
+                :fillColorShow="fillColorShow"
               />
             </div>
 
-            <a slot="reference">
+            <div slot="reference">
               <i class="iconfont icon-tianchong"></i>
-            </a>
+            </div>
           </el-popover>
 
           <!-- <a @mousedown.stop>
@@ -223,7 +223,25 @@
           </a>-->
         </ToolTip>
         <ToolTip class="tool-item" content="边框颜色">
-          <a @mousedown.stop>
+          <el-popover
+            placement="bottom"
+            trigger="click"
+            :append-to-body="true"
+            popper-class="color-popover"
+            v-model="strokeColorShow"
+          >
+            <div @mousedown.prevent>
+              <ColorPicker
+                :value="currentShapeStyle.fillColor"
+                @change="strokeColor => {changeStyle('strokeColor',strokeColor);strokeColorShow=false}"
+              />
+            </div>
+
+            <a slot="reference">
+              <i class="iconfont icon-pen"></i>
+            </a>
+          </el-popover>
+          <!-- <a @mousedown.stop>
             <i class="iconfont icon-pen"></i>
             <div class="pickerbox">
               <el-color-picker
@@ -232,7 +250,7 @@
                 @change="strokeColor => changeStyle('strokeColor',strokeColor)"
               ></el-color-picker>
             </div>
-          </a>
+          </a>-->
         </ToolTip>
         <ToolTip class="tool-item" content="边框粗细" disabled>
           <el-dropdown
@@ -295,7 +313,6 @@
     </div>
     <!-- 图片可用的编辑选项 -->
     <div v-show="currentshape == 'image'" class="modifier">
-      <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="边框颜色">
         <a>
           <i class="iconfont icon-pen"></i>
@@ -347,7 +364,6 @@
     </div>
     <!-- 线条可用的编辑选项 -->
     <div v-show="currentshape == 'connector'" class="modifier">
-      <div class="toolbar-separator"></div>
       <ToolTip class="tool-item" content="边框颜色">
         <a>
           <i class="iconfont icon-pen"></i>
@@ -395,6 +411,29 @@
           <i class="iconfont icon-jiang-copy"></i>
         </a>
       </ToolTip>
+    </div>
+    <!-- 添加修改背景颜色和图片 -->
+    <div class="modifier" v-show="currentshape == ''">
+      <span @click="setBackgroundImage" class="tool-item">背景图片</span>
+      <div class="toolbar-separator"></div>
+       <el-popover
+            placement="bottom"
+            trigger="click"
+            :append-to-body="true"
+            popper-class="color-popover"
+            v-model="bgColorShow"
+          >
+          <div @mousedown.prevent>
+            <ColorPicker
+              :value="currentShapeStyle.fillColor"
+              @change="setBackgroundColor"
+            />
+          </div>
+
+          <span class="tool-item" slot="reference">
+            背景颜色
+          </span>
+        </el-popover>
     </div>
   </div>
 </template>
@@ -516,6 +555,10 @@ export default {
       isfullscreen: false,
       currentshape: '',
       isContentEditing: false,
+      foreColorShow: false,
+      fillColorShow: false,
+      bgColorShow: false,
+      strokeColorShow: false,
       currentShapeStyle: {
         fontSize: '',
         fontFamily: '',
@@ -535,6 +578,7 @@ export default {
   created() {
     this.$bus.$on('updateToolBarStates', this.updateToolBarStates);
     this.$bus.$on('updateFontStyle', this.updateFontStyle);
+    this.$bus.$on('insertImage', this.insertImage);
   },
   mounted() {},
   methods: {
@@ -587,7 +631,7 @@ export default {
       if (this.isContentEditing) {
         let fontDom = document.getSelection().anchorNode.parentNode;
 
-        this.currentShapeStyle.fontColor = getStyle(fontDom, 'color') || '#000';
+        // this.currentShapeStyle.fontColor = getStyle(fontDom, 'color') || '#000';
         this.currentShapeStyle.fontFamily = this.findlabel(this.fontFamilyList, getStyle(fontDom, 'fontFamily')) || 'Arial';
         this.currentShapeStyle.fontSize = getStyle(fontDom, 'fontSize').replace('px', '') || 16;
       }
@@ -654,12 +698,23 @@ export default {
         });
     },
     async insertImage() {
-      let value = await this.selectImage('插入图片');
-      this.$Editor.insertImage(value);
+      let src = await this.selectImage('插入图片');
+      this.$Editor.insertImage(src);
     },
     async changeImage() {
-      let value = await this.selectImage('更换图片');
-      this.$Editor.changeImage(value);
+      let src = await this.selectImage('更换图片');
+      this.$Editor.changeImage(src);
+    },
+    async setBackgroundImage(){
+      let src = await this.selectImage('选择图片');
+      this.$Editor.setBackgroundImage(src);
+      
+    },
+    setBackgroundColor(color){
+       this.$Editor.setBackgroundColor(color);
+       this.bgColorShow=false;
+       this.$bus.$emit('changeBackgroundColor',color);
+       this.$bus.$emit('modelChange');
     },
     mouseDownHandler(e) {
       e.stopPropagation();
@@ -694,9 +749,9 @@ export default {
     height: 26px;
     line-height: 26px;
     text-align: center;
-    font-size: 14px;
     padding: 0 5px;
     margin-left: 4px;
+    cursor: pointer;
     span {
       color: #000;
     }
@@ -708,11 +763,13 @@ export default {
       vertical-align: middle;
       color: #606f7b;
       line-height: 26px;
+      font-style: normal;
     }
     &:hover {
       background-color: rgba(0, 0, 0, 0.04);
     }
   }
+  
   .modifier {
     height: 41px;
     display: flex;

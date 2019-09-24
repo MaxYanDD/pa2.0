@@ -24,6 +24,75 @@
         </el-dropdown>
       </div>
     </div>
+    <div class="istoolsbar">
+      <div class="block">
+        <div class="istool-item" @click="()=>{this.$bus.$emit('save')}">
+          <i class="iconfont icon-baocun"></i>
+          <span class="tip">保存</span>
+        </div>
+        <div class="istool-item" @click="(e) => this.$Editor.undo()">
+          <i class="iconfont icon-undo"></i>
+          <span class="tip">撤销</span>
+        </div>
+        <div class="istool-item" @click="() => this.$Editor.redo()">
+          <i class="iconfont icon-redo"></i>
+          <span class="tip">重做</span>
+        </div>
+        <div class="istool-item" @click="(e) => this.$Editor.deletCells(e)">
+          <i class="iconfont icon-icon-test"></i>
+          <span class="tip">删除</span>
+        </div>
+      </div>
+      <div class="block">
+        <div class="istool-item" @click="() => this.$Editor.insertText()">
+          <i class="iconfont icon-twenbenkuang"></i>
+          <span class="tip">文本</span>
+        </div>
+        <div class="istool-item" @click="() => this.$bus.$emit('insertImage')">
+          <i class="iconfont icon-tupian"></i>
+          <span class="tip">图片</span>
+        </div>
+        <div class="istool-item" @click="() => this.$Editor.insertLine()">
+          <i class="iconfont icon-Line-Tool"></i>
+          <span class="tip">线条</span>
+        </div>
+        <div class="istool-item">
+          <i class="iconfont icon-shapes"></i>
+          <span class="tip">形状</span>
+        </div>
+        <div class="istool-item" @click="() => this.dialogTableVisible = !this.dialogTableVisible">
+          <i class="iconfont icon-table"></i>
+          <span class="tip">表格</span>
+
+          <el-dialog
+            title="编辑表格"
+            top="5vh"
+            :visible.sync="dialogTableVisible"
+            width="90%"
+            :append-to-body="true"
+            class="el-dialog-override el-dialog-override-table"
+          >
+            <TableEditor @close="() => this.dialogTableVisible = !this.dialogTableVisible" />
+          </el-dialog>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="istool-item" @click="insertProductModel">
+          <img class="img-ico" src="http://imgcache.eltmall.com/images/2019/0418/4666b9e003941dcd1f0ebc09d459e2b727a23de9.svg" alt="云知光商城" />
+          <span class="tip">灯具</span>
+        </div>
+        <el-dialog
+          title="云知光商城灯具库"
+          top="15vh"
+          :visible.sync="lightEditVisible"
+          :append-to-body="true"
+          class="el-dialog-override el-dialog-override-table"
+        >
+          <LightEdit @close="() => this.lightEditVisible = !this.lightEditVisible" />
+        </el-dialog>
+      </div>
+    </div>
     <div class="tb-right">
       <div class="dlBtn">
         <el-progress
@@ -80,11 +149,16 @@
 </template>
 
 <script>
+
+import Vue from 'vue';
 import domtoimage from 'dom-to-image';
+import TableEditor from './TableEditor';
+import LightEdit from './LightEdit'
+import Product from './models/Product';
 export default {
   props: ['user', 'project', 'progress'],
   data() {
-    return { visible: false };
+    return { visible: false, dialogTableVisible: false,lightEditVisible:false };
   },
   methods: {
     handleCommand() {
@@ -96,7 +170,27 @@ export default {
     },
     changeProjectTitle(e) {
       this.$bus.$emit('changeProjectTitle', e.target.value);
+    },
+    insertProductModel() {
+      let mxcell = this.$Editor.insertModel('<div class="model1"><div>', 240, 115);
+      this.$nextTick(() => {
+        let model =  Vue.extend({
+          template:'<Product />',
+          components:{
+            Product
+          }
+        })
+        let modelVm = new model().$mount('.page-list .model1');
+        // mxcell[0].setValue(modelVm.$el.outerHTML);
+      });
     }
+  },
+  components: {
+    TableEditor,
+    LightEdit
+  },
+  created() {
+    console.log(this, Product);
   }
 };
 </script>
@@ -104,8 +198,7 @@ export default {
 .topbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  height: 45px;
+  height: 50px;
   border-bottom: 1px solid #e2e6ed;
 
   .tb-left {
@@ -208,6 +301,44 @@ export default {
           width: 30px;
           height: 30px;
           border-radius: 50%;
+        }
+      }
+    }
+  }
+
+  .istoolsbar {
+    display: flex;
+    justify-content: space-around;
+    flex: 1;
+    .block {
+      display: flex;
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+      .istool-item {
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        padding: 0 10px;
+        cursor: pointer;
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.04);
+        }
+        .iconfont {
+          font-size: 20px;
+          margin-bottom: 4px;
+          color: #606f7b;
+          transition: color 0.2s;
+        }
+        .tip {
+          color: #5b6b73;
+        }
+        .img-ico {
+          width: 20px;
+          height: 20px;
+          margin-bottom: 6px;
         }
       }
     }

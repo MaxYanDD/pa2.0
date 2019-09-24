@@ -71,7 +71,7 @@
           <li class="add-color">
             <i class="iconfont icon-add2"></i>
             <div class="pickerbox">
-              <el-color-picker v-model="addColor" show-alpha color-format="rgb" size="mini" @change="addCus"></el-color-picker>
+              <el-color-picker :disabled="showPane" v-model="addColor" show-alpha color-format="rgb" size="mini" @change="addCus"></el-color-picker>
             </div>
           </li>
         </ul>
@@ -99,10 +99,15 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    fillColorShow: {
+      type: Boolean
     }
   },
   data() {
     return {
+      // 调色板禁用状态
+      showPane: false,
       // 面板打开状态
       openStatus: true,
       // 鼠标经过的颜色块
@@ -207,6 +212,12 @@ export default {
     document.onclick = () => {
       this.openStatus = false;
     };
+  },
+  watch:{
+    fillColorShow(newval){
+      this.showPane = newval ? false : true;
+      console.log(this.showPane )
+    }
   }
 };
 </script>
